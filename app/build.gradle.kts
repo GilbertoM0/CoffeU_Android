@@ -61,4 +61,10 @@ dependencies {
 
     // Dependencia de ViewModel Compose (para la función viewModel() )
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+
+    // --- Retrofit y Librerías de Red ---
+    // 1. Cliente HTTP (Retrofit)
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    // 2. Conversor JSON (Gson) - Necesario para convertir tus Modelos a JSON y viceversa
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
 }

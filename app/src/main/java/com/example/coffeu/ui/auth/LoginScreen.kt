@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
@@ -19,17 +20,31 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.coffeu.ui.theme.CoffeUTheme
+import com.example.coffeu.ui.viewmodel.AuthViewModel
 
 @Composable
 fun LoginScreen(
-    // 1. **CORRECCIÓN:** El parámetro que AppNavigation espera
-    onLoginSuccess: () -> Unit,
-    onNavigateToRegister: () -> Unit = {}
+    onLoginSuccess: (token: String) -> Unit, // El AppNavigation espera el token
+    onNavigateToRegister: () -> Unit,
+    authViewModel: AuthViewModel = viewModel()
 ) {
-    var email by remember { mutableStateOf("") }
+    var identificador by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+
+    // --- ESTADOS DEL VIEWMODEL (OBSERVABLES) ---
+    val isLoading = authViewModel.isLoading
+    val errorMessage = authViewModel.errorMessage
+    val loginState = authViewModel.loginState
+
+    // 1. EFECTO: Reaccionar al Login exitoso
+    LaunchedEffect(loginState) {
+        if (loginState != null) {
+            onLoginSuccess(loginState.token)
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -43,6 +58,7 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
+            // --- Encabezado ---
             Spacer(modifier = Modifier.height(32.dp))
             Text(
                 text = "Bienvenido de vuelta",
@@ -59,26 +75,17 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Campo de Email
+            // --- Campos de Texto ---
             OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Correo Electrónico") },
-                leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Email") },
+                value = identificador,
+                onValueChange = { identificador = it },
+                label = { Text("Telefono Celular") },
+                leadingIcon = { Icon(Icons.Default.Call, contentDescription = "Identificador") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f),
-                    focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
-                    unfocusedLeadingIconColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-                )
+                shape = RoundedCornerShape(12.dp)
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Campo de Contraseña
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -87,20 +94,13 @@ fun LoginScreen(
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 trailingIcon = {
-                    // Nota: Usaste Icons.Filled.Lock para ambos estados, lo mantengo.
                     val image = if (passwordVisible) Icons.Filled.Lock else Icons.Filled.Lock
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(imageVector  = image, contentDescription = "Toggle password visibility")
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f),
-                    focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
-                    unfocusedLeadingIconColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-                )
+                shape = RoundedCornerShape(12.dp)
             )
 
             // Olvidé Contraseña
@@ -113,24 +113,46 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Botón de Iniciar Sesión
+            // --- Botón de Iniciar Sesión CONECTADO A LA LÓGICA ---
             Button(
-                // 2. **CORRECCIÓN:** Llama al callback de navegación al hacer clic
-                onClick = { onLoginSuccess() },
+                onClick = {
+                    // 2. ACCIÓN: Valida campos y llama al ViewModel para iniciar la red
+                    if (identificador.isNotBlank() && password.isNotBlank()) {
+                        authViewModel.attemptLogin(identificador, password)
+                    } else {
+                        // CORRECCIÓN: Usamos la función pública updateErrorMessage()
+                        authViewModel.updateErrorMessage("Por favor, introduce tu telefono y contraseña.")
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
                     .clip(RoundedCornerShape(12.dp)),
+                enabled = !isLoading, // Deshabilita mientras carga
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
             ) {
+                if (isLoading) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
+                } else {
+                    Text(
+                        text = "INICIAR SESIÓN",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+
+            // --- Mostrar Error ---
+            if (errorMessage != null && !isLoading) {
                 Text(
-                    text = "INICIAR SESIÓN",
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
+                    text = errorMessage!!,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 16.dp)
                 )
             }
+
 
             // Enlace a Registrarse
             Spacer(modifier = Modifier.height(32.dp))
@@ -156,7 +178,6 @@ fun LoginScreen(
 @Composable
 fun LoginScreenPreview() {
     CoffeUTheme {
-        // 3. **CORRECCIÓN:** Pasa un placeholder para que el Preview compile
-        LoginScreen(onLoginSuccess = {})
+        LoginScreen(onLoginSuccess = {}, onNavigateToRegister = {})
     }
 }

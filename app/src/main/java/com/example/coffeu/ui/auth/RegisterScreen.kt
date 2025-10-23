@@ -21,23 +21,44 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.coffeu.ui.theme.CoffeUTheme
+import com.example.coffeu.ui.viewmodel.AuthViewModel
 
 @Composable
 fun RegisterScreen(
-    // 1. **CORRECCIÓN:** El nuevo parámetro que AppNavigation espera
     onRegistrationSuccess: () -> Unit,
-    onNavigateToLogin: () -> Unit = {}
+    onNavigateToLogin: () -> Unit = {},
+    authViewModel: AuthViewModel = viewModel() // Obtener el ViewModel
 ) {
     // Estados locales para los campos de texto
     var email by remember { mutableStateOf("") }
     var nombreUsuario by remember { mutableStateOf("") }
     var telefonoCelular by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var password2 by remember { mutableStateOf("") } // Confirmación de contraseña
+    var password2 by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var password2Visible by remember { mutableStateOf(false) }
 
+    // --- ESTADOS DEL VIEWMODEL (OBSERVABLES) ---
+    val isLoading = authViewModel.isLoading
+    val errorMessage = authViewModel.errorMessage
+    val registerSuccess = authViewModel.registerSuccess
+
+    // 1. Efecto: Reaccionar al registro exitoso (navegación)
+    LaunchedEffect(registerSuccess) {
+        if (registerSuccess) {
+            authViewModel.resetRegisterState() // Limpiar el estado
+            onRegistrationSuccess() // Navegar a Login (callback de AppNavigation)
+        }
+    }
+
+    // 2. Efecto: Limpiar el error cuando los campos cambian (Opcional, pero útil para UX)
+    LaunchedEffect(email, password, password2) {
+        authViewModel.updateErrorMessage(null) // Usamos la función corregida
+    }
+
+    // Usaremos un Box para centrar el contenido y establecer el fondo
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -48,9 +69,9 @@ fun RegisterScreen(
                 .fillMaxSize()
                 .padding(horizontal = 24.dp, vertical = 48.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            // Scroll si el contenido es muy largo para la pantalla
             verticalArrangement = Arrangement.Center
         ) {
+            // --- Encabezado ---
             Spacer(modifier = Modifier.height(32.dp))
             Text(
                 text = "Crea tu cuenta",
@@ -67,7 +88,7 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Campo de Email
+            // --- Campos de Texto (MANTENIDOS) ---
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -77,10 +98,7 @@ fun RegisterScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Campo de Nombre de Usuario
             OutlinedTextField(
                 value = nombreUsuario,
                 onValueChange = { nombreUsuario = it },
@@ -90,10 +108,7 @@ fun RegisterScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Campo de Teléfono Celular
             OutlinedTextField(
                 value = telefonoCelular,
                 onValueChange = { telefonoCelular = it },
@@ -103,10 +118,7 @@ fun RegisterScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Campo de Contraseña
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -123,10 +135,7 @@ fun RegisterScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Campo de Confirmar Contraseña (password2)
             OutlinedTextField(
                 value = password2,
                 onValueChange = { password2 = it },
@@ -144,64 +153,75 @@ fun RegisterScreen(
                 shape = RoundedCornerShape(12.dp)
             )
 
-            // Términos y Condiciones (Opcional, como en tu imagen original de SignUp)
+            // Términos y Condiciones
             Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Checkbox(
-                    checked = false, // Aquí manejarías el estado del Checkbox
-                    onCheckedChange = { /* Actualizar estado */ }
-                )
+                Checkbox(checked = false, onCheckedChange = { /* Actualizar estado */ })
                 Text(
                     text = "Al registrarte, aceptas nuestros ",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                 )
-                TextButton(onClick = { /* Abrir términos y condiciones */ },
-                    modifier = Modifier.height(24.dp) // Ajustar altura si es necesario
-                ) {
-                    Text("Términos de Uso",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary)
+                TextButton(onClick = { /* Abrir términos */ }, modifier = Modifier.height(24.dp)) {
+                    Text("Términos de Uso", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                 }
             }
 
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Botón de Registrarse
+            // --- Botón de Registrarse CONECTADO A LA LÓGICA ---
             Button(
-                // 2. **CORRECCIÓN:** Llama al callback de navegación al hacer clic
-                onClick = { onRegistrationSuccess() },
+                onClick = {
+                    // Llama a la función del ViewModel con los datos
+                    authViewModel.attemptRegister(
+                        email = email,
+                        nombre_usuario = nombreUsuario,
+                        telefono_celular = telefonoCelular,
+                        password = password,
+                        password2 = password2
+                    )
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
                     .clip(RoundedCornerShape(12.dp)),
+                enabled = !isLoading, // Deshabilita el botón mientras carga
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
             ) {
+                if (isLoading) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
+                } else {
+                    Text(
+                        text = "REGISTRARSE",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+
+            // --- Mostrar Error ---
+            if (errorMessage != null && !isLoading) {
                 Text(
-                    text = "REGISTRARSE",
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
+                    text = errorMessage!!,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 16.dp)
                 )
             }
 
             // Enlace a Iniciar Sesión si ya tienen cuenta
             Spacer(modifier = Modifier.height(32.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "¿Ya tienes una cuenta?",
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                // Este botón ya usa el callback para volver al Login
                 TextButton(onClick = onNavigateToLogin) {
                     Text(
                         text = "Iniciar sesión",
@@ -218,7 +238,6 @@ fun RegisterScreen(
 @Composable
 fun RegisterScreenPreview() {
     CoffeUTheme {
-        // 3. **CORRECCIÓN:** Pasa un placeholder para que el Preview compile
         RegisterScreen(onRegistrationSuccess = {})
     }
 }

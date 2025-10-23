@@ -1,4 +1,4 @@
-package com.example.coffeu.ui.auth // Ajustado al paquete donde dijiste que va HomeScreen.kt
+package com.example.coffeu.ui.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -27,8 +27,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.coffeu.R // Necesitas tener R.drawable.xxx
-import com.example.coffeu.ui.auth.Kitchen
-import com.example.coffeu.ui.theme.CoffeUTheme // Asumiendo que este es el nombre de tu tema
+// Nota: La importación com.example.coffeu.ui.auth.Kitchen no es necesaria si Kitchen está en este archivo
+import com.example.coffeu.ui.theme.CoffeUTheme
 
 // =================================================================
 // ESTRUCTURA DE DATOS (MODELOS)
@@ -47,20 +47,18 @@ data class Kitchen(
 )
 
 // --- Simulación de Datos (PLACEHOLDERS) ---
-// Usas ic_launcher_background como placeholder, lo mantengo.
 val categories = listOf(
-    /*FoodCategory(1, "Pizza", R.drawable.home_pizza),
-    FoodCategory(2, "Burgers", R.drawable.home_hamburger),
-    FoodCategory(3, "Cookies", R.drawable.home_cookies),*/
-    FoodCategory(1, "Pasta", R.drawable.img),
-    /*FoodCategory(5, "Sushi", R.drawable.home_sushiroll),*/
+    FoodCategory(1, "Pizza", R.drawable.img),
+    FoodCategory(2, "Burgers", R.drawable.img),
+    FoodCategory(3, "Cookies", R.drawable.img),
+    FoodCategory(4, "Pasta", R.drawable.img),
+    FoodCategory(5, "Sushi", R.drawable.img),
 )
 
 val kitchens = listOf(
     Kitchen(1, "Classic Cheese Pizza", "10% Off", 4.3, 27, "20.00", "15-30 min", "1.3 km", R.drawable.home_pizza_con_chorizo_jamon_y_queso),
     Kitchen(2, "Pasta", "5% Off", 4.3, 27, "18.50", "15-30 min", "1.3 km", R.drawable.home_plato_pasta),
     Kitchen(3, "Sushi Roll", "20% Off", 4.5, 40, "22.00", "20-40 min", "2.0 km", R.drawable.home_sushi_roll),
-
     Kitchen(4, "Cafe con galletas", "10% Off", 4.3, 27, "20.00", "15-30 min", "1.3 km", R.drawable.coffee),
     Kitchen(5, "Flauta", "5% Off", 4.3, 27, "18.50", "15-30 min", "1.3 km", R.drawable.home_flautas),
     Kitchen(6, "Torta", "20% Off", 4.5, 40, "22.00", "20-40 min", "2.0 km", R.drawable.home_torta)
@@ -72,19 +70,18 @@ val kitchens = listOf(
 // =================================================================
 @Composable
 fun HomeScreen(
-    // **CORRECCIÓN 1:** Se añade el parámetro onLogout para AppNavigation
+    // ✅ CORRECCIÓN 1: Se añade el parámetro USERNAME (necesario para AppNavigation)
+    username: String,
     onLogout: () -> Unit = {},
     onSearchClicked: () -> Unit = {},
     onNotificationClicked: () -> Unit = {}
 ) {
     Scaffold(
         bottomBar = {
-            // Podrías pasar el onLogout al HomeBottomBar si el botón de perfil es el de cerrar sesión.
             HomeBottomBar()
         },
         containerColor = Color.White
     ) { paddingValues ->
-        // Usamos LazyColumn para que toda la pantalla sea deslizable
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -92,9 +89,11 @@ fun HomeScreen(
         ) {
             // 1. Header (Perfil y Ubicación)
             item {
-                // **CORRECCIÓN 2:** Si quieres que el botón de notificación te lleve al Login (por ejemplo, para cerrar sesión temporalmente),
-                // podrías usar onLogout aquí, pero lo mantengo separado para mantener la lógica clara.
-                HomeHeader(onNotificationClicked = onNotificationClicked)
+                // ✅ CORRECCIÓN 2: Pasamos el username al HomeHeader
+                HomeHeader(
+                    userName = username,
+                    onNotificationClicked = onNotificationClicked
+                )
             }
 
             // 2. Search Bar
@@ -141,10 +140,10 @@ fun HomeScreen(
 // =================================================================
 @Composable
 fun HomeHeader(
-    userName: String = "User Name",
-    deliveryLocation: String = "44 Street Town",
+    // ✅ CORRECCIÓN 3: HomeHeader ahora recibe el nombre de usuario
+    userName: String,
+    deliveryLocation: String = "Moctezuma #100",
     notificationCount: Int = 13,
-    // Este parámetro es requerido en este sub-Composable
     onNotificationClicked: () -> Unit
 ) {
     Row(
@@ -169,9 +168,11 @@ fun HomeHeader(
             Spacer(modifier = Modifier.width(8.dp))
             Column {
                 Text(
-                    text = "Deliver To",
+                    // Mostramos el nombre de usuario en la primera línea
+                    text = "Hola, ${userName}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = Color.Gray,
+                    fontWeight = FontWeight.SemiBold
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
@@ -182,6 +183,7 @@ fun HomeHeader(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
+                        // Y la ubicación en la segunda
                         text = deliveryLocation,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
@@ -203,7 +205,7 @@ fun HomeHeader(
         ) {
             IconButton(onClick = onNotificationClicked) {
                 Icon(
-                    imageVector = Icons.Default.Notifications, // Usando un icono estándar de notificación
+                    imageVector = Icons.Default.Notifications,
                     contentDescription = "Notifications",
                     modifier = Modifier.size(24.dp)
                 )
@@ -236,14 +238,14 @@ fun SearchBar(onClick: () -> Unit) {
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = "Search for Food..",
+            text = "Buscar comida..",
             color = Color.Gray,
             style = MaterialTheme.typography.bodyLarge
         )
         Spacer(modifier = Modifier.weight(1f))
         // Icono de Filtro (los 3 puntos)
         Icon(
-            imageVector = Icons.Default.Favorite, // Usando Favorite como placeholder para el icono de filtro (Tune podría ser mejor)
+            imageVector = Icons.Default.Favorite, // Usando Favorite como placeholder para el icono de filtro
             contentDescription = "Filter",
             tint = Color.Gray,
             modifier = Modifier.size(24.dp)
@@ -265,7 +267,7 @@ fun PromoBanner() {
     ) {
         // Imagen de Fondo del Banner
         Image(
-            painter = painterResource(id = R.drawable.home_placeholderpizza_home), // REEMPLAZAR con pizza_banner_image
+            painter = painterResource(id = R.drawable.home_placeholderpizza_home), // REEMPLAZAR con tu drawable
             contentDescription = "Offer Banner",
             contentScale = ContentScale.Crop,
             modifier = Modifier.matchParentSize()
@@ -278,13 +280,13 @@ fun PromoBanner() {
                 .padding(24.dp)
         ) {
             Text(
-                text = "UP TO 30% OFF",
+                text = "HASTA 30% DE DESCUENTO",
                 color = Color.White,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Black
             )
             Text(
-                text = "ON FIRST ORDER",
+                text = "EN EL PRIMER PEDIDO",
                 color = Color.White,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Black
@@ -296,7 +298,7 @@ fun PromoBanner() {
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White)
             ) {
                 Text(
-                    text = "Order Now",
+                    text = "Ordenar Ahora",
                     color = MaterialTheme.colorScheme.primary, // Color principal de tu tema
                     fontWeight = FontWeight.Bold
                 )
@@ -369,13 +371,13 @@ fun KitchensHeader(onSeeAllClicked: () -> Unit = {}) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "Kitchen near you",
+            text = "Cocina cerca de ti",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
         TextButton(onClick = onSeeAllClicked) {
             Text(
-                text = "See All",
+                text = "Mostrar todo",
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.SemiBold
             )
@@ -554,7 +556,10 @@ fun HomeBottomBar() {
 @Composable
 fun HomeScreenPreview() {
     CoffeUTheme {
-        // **CORRECCIÓN 3:** Se pasa un placeholder para onLogout
-        HomeScreen(onLogout = {})
+        // ✅ CORRECCIÓN: Ahora pasamos el valor 'username' (ej: "Stefanie")
+        HomeScreen(
+            username = "Stefanie", // <--- ¡Añadir este parámetro!
+            onLogout = {}
+        )
     }
 }
