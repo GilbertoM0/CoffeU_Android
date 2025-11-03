@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.example.coffeu.data.RetrofitClient
+import com.example.coffeu.data.model.Kitchen
 import com.example.coffeu.data.model.LoginRequest
 import com.example.coffeu.data.model.LoginResponse
 import com.example.coffeu.data.model.RegisterRequest
@@ -23,6 +24,12 @@ class AuthViewModel : ViewModel() {
         private set
     var errorMessage by mutableStateOf<String?>(null)
         private set
+
+    // Para Kitchen la carga de los products
+    // ✅ ESTADO para la lista de cocinas
+    var kitchenList by mutableStateOf<List<Kitchen>>(emptyList())
+        private set
+    var kitchenListError by mutableStateOf<String?>(null)
 
     // --- CORRECCIÓN: Usamos 'updateErrorMessage' para evitar el choque de firmas (Clash) ---
     fun updateErrorMessage(message: String?) {
@@ -87,6 +94,30 @@ class AuthViewModel : ViewModel() {
             }
         }
     }
+
+
+
+
+    // ✅ FUNCIÓN para cargar la lista de cocinas
+    fun loadKitchens() {
+        if (kitchenList.isNotEmpty()) return // No recargar si ya hay datos
+
+        kitchenListError = null
+        isLoading = true // Usamos el indicador global
+
+        viewModelScope.launch {
+            try {
+                val list = RetrofitClient.authService.getKitchens()
+                kitchenList = list
+            } catch (e: Exception) {
+                kitchenListError = "No se pudo cargar la lista de cocinas: ${e.message}"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+
 
     // Función para limpiar el estado de éxito después de navegar o un error
     fun resetRegisterState() {

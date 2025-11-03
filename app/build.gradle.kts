@@ -67,4 +67,7 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     // 2. Conversor JSON (Gson) - Necesario para convertir tus Modelos a JSON y viceversa
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+
+    // Coil para carga asíncrona de imágenes desde URL
+    implementation("io.coil-kt:coil-compose:2.6.0")
 }

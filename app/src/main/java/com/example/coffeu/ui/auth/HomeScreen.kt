@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,9 +27,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.example.coffeu.R // Necesitas tener R.drawable.xxx
 // Nota: La importación com.example.coffeu.ui.auth.Kitchen no es necesaria si Kitchen está en este archivo
 import com.example.coffeu.ui.theme.CoffeUTheme
+import com.example.coffeu.ui.viewmodel.AuthViewModel
+import com.example.coffeu.data.model.Kitchen
 
 // =================================================================
 // ESTRUCTURA DE DATOS (MODELOS)
@@ -55,15 +60,6 @@ val categories = listOf(
     FoodCategory(5, "Sushi", R.drawable.img),
 )
 
-val kitchens = listOf(
-    Kitchen(1, "Classic Cheese Pizza", "10% Off", 4.3, 27, "20.00", "15-30 min", "1.3 km", R.drawable.home_pizza_con_chorizo_jamon_y_queso),
-    Kitchen(2, "Pasta", "5% Off", 4.3, 27, "18.50", "15-30 min", "1.3 km", R.drawable.home_plato_pasta),
-    Kitchen(3, "Sushi Roll", "20% Off", 4.5, 40, "22.00", "20-40 min", "2.0 km", R.drawable.home_sushi_roll),
-    Kitchen(4, "Cafe con galletas", "10% Off", 4.3, 27, "20.00", "15-30 min", "1.3 km", R.drawable.coffee),
-    Kitchen(5, "Flauta", "5% Off", 4.3, 27, "18.50", "15-30 min", "1.3 km", R.drawable.home_flautas),
-    Kitchen(6, "Torta", "20% Off", 4.5, 40, "22.00", "20-40 min", "2.0 km", R.drawable.home_torta)
-)
-
 
 // =================================================================
 // COMPONENTE PRINCIPAL DE LA PANTALLA
@@ -74,8 +70,20 @@ fun HomeScreen(
     username: String,
     onLogout: () -> Unit = {},
     onSearchClicked: () -> Unit = {},
-    onNotificationClicked: () -> Unit = {}
+    onNotificationClicked: () -> Unit = {},
+    authViewModel: AuthViewModel = viewModel() // <--- Obtener ViewModel
 ) {
+
+    // 1. Cargar datos al inicio
+    LaunchedEffect(Unit) {
+        authViewModel.loadKitchens()
+    }
+
+    // 2. Observar el estado del ViewModel
+    val kitchens = authViewModel.kitchenList // Lista real (observable)
+    val isLoadingList = authViewModel.isLoading
+    val error = authViewModel.kitchenListError
+
     Scaffold(
         bottomBar = {
             HomeBottomBar()
@@ -116,18 +124,43 @@ fun HomeScreen(
                 KitchensHeader()
             }
 
-            // 6. Kitchens Near You Row (Horizontal)
+            // 6. Kitchens Near You Row (Mostrar datos dinámicos)
             item {
-                LazyRow(
-                    contentPadding = PaddingValues(
-                        start = 16.dp,
-                        end = 16.dp,
-                        bottom = 16.dp
-                    ),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(kitchens) { kitchen ->
-                        KitchenCard(kitchen = kitchen)
+                when {
+                    // Muestra carga si está ocupado y la lista está vacía (primera carga)
+                    isLoadingList && kitchens.isEmpty() -> {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().height(200.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                    // Muestra error si falló la carga
+                    error != null -> {
+                        Text(
+                            text = "Error de carga: $error",
+                            color = Color.Red,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                    // Muestra la lista si hay datos
+                    else -> {
+                        LazyRow(
+                            contentPadding = PaddingValues(
+                                start = 16.dp,
+                                end = 16.dp,
+                                bottom = 16.dp
+                            ),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            items(kitchens) { kitchen ->
+                                // Pasa el callback de navegación al hacer clic
+                                KitchenCard(
+                                    kitchen = kitchen
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -388,10 +421,15 @@ fun KitchensHeader(onSeeAllClicked: () -> Unit = {}) {
 // =================================================================
 // 6. KITCHEN CARD
 // =================================================================
+// Archivo: HomeScreen.kt (Función KitchenCard)
+
 @Composable
-fun KitchenCard(kitchen: Kitchen) {
+fun KitchenCard(kitchen: Kitchen) { // ✅ Ya no acepta onCardClick
     Card(
-        modifier = Modifier.width(260.dp),
+        modifier = Modifier
+            .width(260.dp)
+            // ✅ CORRECCIÓN: La tarjeta sigue siendo clickable, pero la acción no hace nada.
+            .clickable { /* Acción deshabilitada temporalmente */ },
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
@@ -403,12 +441,17 @@ fun KitchenCard(kitchen: Kitchen) {
                     .fillMaxWidth()
                     .height(150.dp)
             ) {
-                Image(
-                    painter = painterResource(id = kitchen.image), // REEMPLAZAR
+                // ✅ REEMPLAZO DEL PLACEHOLDER CON COIL (AsyncImage)
+                AsyncImage(
+                    // La URL viene de Django
+                    model = kitchen.imageUrl,
                     contentDescription = kitchen.name,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.matchParentSize()
+                    modifier = Modifier.matchParentSize(),
+                    // Puedes añadir un placeholder o indicador de carga aquí
+                   // placeholder = painterResource(R.drawable.img) // Usa un drawable local como placeholder
                 )
+
                 // Descuento
                 Text(
                     text = kitchen.discount,
@@ -419,7 +462,7 @@ fun KitchenCard(kitchen: Kitchen) {
                         .align(Alignment.TopStart)
                         .padding(8.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFFE53935)) // Rojo de descuento
+                        .background(Color(0xFFE53935))
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 )
                 // Corazón de Favorito
@@ -448,7 +491,7 @@ fun KitchenCard(kitchen: Kitchen) {
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                // Tiempo, Distancia, Rating y Precio
+                // Tiempo, Distancia, Rating y Precio (Mantener el resto de la lógica)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -459,7 +502,7 @@ fun KitchenCard(kitchen: Kitchen) {
                         Icon(
                             imageVector = Icons.Default.Star,
                             contentDescription = "Rating",
-                            tint = Color(0xFFFFC107), // Amarillo de estrella
+                            tint = Color(0xFFFFC107),
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
