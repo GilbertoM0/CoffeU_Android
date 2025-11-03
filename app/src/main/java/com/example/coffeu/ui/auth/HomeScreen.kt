@@ -66,11 +66,11 @@ val categories = listOf(
 // =================================================================
 @Composable
 fun HomeScreen(
-    // ✅ CORRECCIÓN 1: Se añade el parámetro USERNAME (necesario para AppNavigation)
     username: String,
     onLogout: () -> Unit = {},
     onSearchClicked: () -> Unit = {},
     onNotificationClicked: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {},
     authViewModel: AuthViewModel = viewModel() // <--- Obtener ViewModel
 ) {
 
@@ -86,9 +86,9 @@ fun HomeScreen(
 
     Scaffold(
         bottomBar = {
-            HomeBottomBar()
+            HomeBottomBar(onProfileClicked = onNavigateToProfile)
         },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -97,10 +97,10 @@ fun HomeScreen(
         ) {
             // 1. Header (Perfil y Ubicación)
             item {
-                // ✅ CORRECCIÓN 2: Pasamos el username al HomeHeader
                 HomeHeader(
                     userName = username,
-                    onNotificationClicked = onNotificationClicked
+                    onNotificationClicked = onNotificationClicked,
+                    onProfileImageClicked = onNavigateToProfile
                 )
             }
 
@@ -140,7 +140,7 @@ fun HomeScreen(
                     error != null -> {
                         Text(
                             text = "Error de carga: $error",
-                            color = Color.Red,
+                            color = MaterialTheme.colorScheme.error,
                             modifier = Modifier.padding(16.dp)
                         )
                     }
@@ -173,11 +173,11 @@ fun HomeScreen(
 // =================================================================
 @Composable
 fun HomeHeader(
-    // ✅ CORRECCIÓN 3: HomeHeader ahora recibe el nombre de usuario
     userName: String,
     deliveryLocation: String = "Moctezuma #100",
     notificationCount: Int = 13,
-    onNotificationClicked: () -> Unit
+    onNotificationClicked: () -> Unit,
+    onProfileImageClicked: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -196,7 +196,7 @@ fun HomeHeader(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .clickable { /* Acción de perfil */ }
+                    .clickable(onClick = onProfileImageClicked)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Column {
@@ -204,7 +204,7 @@ fun HomeHeader(
                     // Mostramos el nombre de usuario en la primera línea
                     text = "Hola, ${userName}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.SemiBold
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -219,7 +219,8 @@ fun HomeHeader(
                         // Y la ubicación en la segunda
                         text = deliveryLocation,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
             }
@@ -229,10 +230,10 @@ fun HomeHeader(
         BadgedBox(
             badge = {
                 Badge(
-                    containerColor = Color(0xFFE53935), // Rojo de notificación
+                    containerColor = MaterialTheme.colorScheme.error,
                     modifier = Modifier.offset((-4).dp, 4.dp)
                 ) {
-                    Text(text = notificationCount.toString(), fontSize = 10.sp, color = Color.White)
+                    Text(text = notificationCount.toString(), fontSize = 10.sp, color = MaterialTheme.colorScheme.onError)
                 }
             }
         ) {
@@ -240,7 +241,8 @@ fun HomeHeader(
                 Icon(
                     imageVector = Icons.Default.Notifications,
                     contentDescription = "Notifications",
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -258,7 +260,7 @@ fun SearchBar(onClick: () -> Unit) {
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .height(56.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFF5F5F5)) // Gris muy claro
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -266,21 +268,21 @@ fun SearchBar(onClick: () -> Unit) {
         Icon(
             imageVector = Icons.Default.Search,
             contentDescription = "Search",
-            tint = Color.Gray,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = "Buscar comida..",
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodyLarge
         )
         Spacer(modifier = Modifier.weight(1f))
         // Icono de Filtro (los 3 puntos)
         Icon(
-            imageVector = Icons.Default.Favorite, // Usando Favorite como placeholder para el icono de filtro
+            imageVector = Icons.Default.Favorite,
             contentDescription = "Filter",
-            tint = Color.Gray,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(24.dp)
         )
     }
@@ -328,11 +330,11 @@ fun PromoBanner() {
             Button(
                 onClick = { /* Acción de pedido */ },
                 shape = RoundedCornerShape(20.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary)
             ) {
                 Text(
                     text = "Ordenar Ahora",
-                    color = MaterialTheme.colorScheme.primary, // Color principal de tu tema
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -361,8 +363,8 @@ fun FoodCategoriesRow(categories: List<FoodCategory>) {
 
 @Composable
 fun CategoryItem(category: FoodCategory, isSelected: Boolean) {
-    val containerColor = if (isSelected) MaterialTheme.colorScheme.primary else Color(0xFFF0F0F0)
-    val contentColor = if (isSelected) Color.White else Color.Black
+    val containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+    val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
 
     Row(
         modifier = Modifier
@@ -406,7 +408,8 @@ fun KitchensHeader(onSeeAllClicked: () -> Unit = {}) {
         Text(
             text = "Cocina cerca de ti",
             style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
         )
         TextButton(onClick = onSeeAllClicked) {
             Text(
@@ -432,7 +435,7 @@ fun KitchenCard(kitchen: Kitchen) { // ✅ Ya no acepta onCardClick
             .clickable { /* Acción deshabilitada temporalmente */ },
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column {
             // Imagen, Descuento y Favorito
@@ -462,7 +465,7 @@ fun KitchenCard(kitchen: Kitchen) { // ✅ Ya no acepta onCardClick
                         .align(Alignment.TopStart)
                         .padding(8.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFFE53935))
+                        .background(MaterialTheme.colorScheme.error)
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 )
                 // Corazón de Favorito
@@ -488,7 +491,8 @@ fun KitchenCard(kitchen: Kitchen) { // ✅ Ya no acepta onCardClick
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 // Tiempo, Distancia, Rating y Precio (Mantener el resto de la lógica)
@@ -502,14 +506,14 @@ fun KitchenCard(kitchen: Kitchen) { // ✅ Ya no acepta onCardClick
                         Icon(
                             imageVector = Icons.Default.Star,
                             contentDescription = "Rating",
-                            tint = Color(0xFFFFC107),
+                            tint = Color(0xFFFFC107), // Keep yellow for rating
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = "${kitchen.rating} (${kitchen.reviewCount} Reviews)",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
@@ -528,13 +532,13 @@ fun KitchenCard(kitchen: Kitchen) { // ✅ Ya no acepta onCardClick
                     Text(
                         text = "${kitchen.deliveryTime}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "• ${kitchen.distance}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -546,9 +550,9 @@ fun KitchenCard(kitchen: Kitchen) { // ✅ Ya no acepta onCardClick
 // 7. BOTTOM NAVIGATION BAR
 // =================================================================
 @Composable
-fun HomeBottomBar() {
+fun HomeBottomBar(onProfileClicked: () -> Unit) {
     NavigationBar(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 8.dp
     ) {
         val navItems = listOf(
@@ -564,7 +568,11 @@ fun HomeBottomBar() {
             val isSelected = label == selectedItem
             NavigationBarItem(
                 selected = isSelected,
-                onClick = { /* Acción de Navegación */ },
+                onClick = {
+                    if (label == "Profile") {
+                        onProfileClicked()
+                    }
+                },
                 icon = {
                     Icon(
                         imageVector = icon,
@@ -582,8 +590,8 @@ fun HomeBottomBar() {
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.primary,
                     selectedTextColor = MaterialTheme.colorScheme.primary,
-                    unselectedIconColor = Color.Gray,
-                    unselectedTextColor = Color.Gray,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     indicatorColor = Color.Transparent
                 )
             )
@@ -595,14 +603,27 @@ fun HomeBottomBar() {
 // =================================================================
 // PREVIEW
 // =================================================================
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "Light Mode")
 @Composable
 fun HomeScreenPreview() {
     CoffeUTheme {
         // ✅ CORRECCIÓN: Ahora pasamos el valor 'username' (ej: "Stefanie")
         HomeScreen(
             username = "Stefanie", // <--- ¡Añadir este parámetro!
-            onLogout = {}
+            onLogout = {},
+            onNavigateToProfile = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Dark Mode")
+@Composable
+fun HomeScreenDarkPreview() {
+    CoffeUTheme(darkTheme = true) {
+        HomeScreen(
+            username = "Stefanie",
+            onLogout = {},
+            onNavigateToProfile = {}
         )
     }
 }
