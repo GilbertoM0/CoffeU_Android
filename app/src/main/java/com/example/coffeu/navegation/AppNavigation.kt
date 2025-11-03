@@ -7,6 +7,13 @@ import androidx.navigation.compose.rememberNavController
 import com.example.coffeu.ui.auth.HomeScreen
 import com.example.coffeu.ui.auth.LoginScreen
 import com.example.coffeu.ui.auth.RegisterScreen
+import com.example.coffeu.ui.password.NewPasswordScreen
+import com.example.coffeu.ui.password.SendCodeScreen
+import com.example.coffeu.ui.password.VerifyCodeScreen
+import com.example.coffeu.ui.profilensetting.ChangePasswordScreen
+import com.example.coffeu.ui.profilensetting.EditProfileScreen
+import com.example.coffeu.ui.profilensetting.NotificationsScreen
+import com.example.coffeu.ui.profilensetting.ProfileScreen
 import com.example.coffeu.ui.viewmodel.AuthViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -17,6 +24,13 @@ object Screen {
     const val Login = "login_screen"
     const val Register = "register_screen"
     const val Home = "home_screen/{username}"
+    const val Profile = "profile_screen"
+    const val EditProfile = "edit_profile_screen"
+    const val Notifications = "notifications_screen"
+    const val ChangePassword = "change_password_screen"
+    const val SendCode = "send_code_screen"
+    const val VerifyCode = "verify_code_screen"
+    const val NewPassword = "new_password_screen"
 }
 
 @Composable
@@ -35,12 +49,7 @@ fun AppNavigation(
                 authViewModel = authViewModel,
                 onLoginSuccess = { token ->
                     val loginResponse = authViewModel.loginState
-
-                    // ✅ CORRECCIÓN CLAVE: Accedemos al objeto anidado 'user' y a la propiedad 'nombreUsuario'.
-                    // El encadenamiento ?. y el operador Elvis (?:) garantizan que NO haya crasheos.
                     val username = loginResponse?.user?.nombreUsuario ?: "Invitado"
-
-                    // 3. Navegamos, reemplazando el placeholder {username}
                     navController.navigate(Screen.Home.replace("{username}", username)) {
                         popUpTo(Screen.Login) { inclusive = true }
                     }
@@ -74,18 +83,90 @@ fun AppNavigation(
                 defaultValue = "Error"
             })
         ) { backStackEntry ->
-            // Se lee el argumento que viene de la navegación
             val username = backStackEntry.arguments?.getString("username") ?: "Error"
-
             HomeScreen(
                 username = username,
                 onLogout = {
-                    authViewModel.logout() // Limpia el estado del ViewModel
+                    authViewModel.logout()
                     navController.navigate(Screen.Login) {
-                        popUpTo(Screen.Home) { inclusive = true }
+                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
                     }
+                },
+                onNavigateToProfile = {
+                    navController.navigate(Screen.Profile)
                 }
             )
+        }
+
+        // --- PROFILE SCREEN ---
+        composable(Screen.Profile) {
+            ProfileScreen(
+                onNavigateToEditProfile = {
+                    navController.navigate(Screen.EditProfile)
+                },
+                onNavigateToNotifications = {
+                    navController.navigate(Screen.Notifications)
+                },
+                onNavigateToChangePassword = {
+                    navController.navigate(Screen.ChangePassword)
+                }
+            )
+        }
+
+        // --- EDIT PROFILE SCREEN ---
+        composable(Screen.EditProfile) {
+            EditProfileScreen(onBackClicked = {
+                navController.popBackStack()
+            })
+        }
+
+        // --- NOTIFICATIONS SCREEN ---
+        composable(Screen.Notifications) {
+            NotificationsScreen(onBackClicked = {
+                navController.popBackStack()
+            })
+        }
+
+        // --- CHANGE PASSWORD SCREEN ---
+        composable(Screen.ChangePassword) {
+            ChangePasswordScreen(
+                onBackClicked = {
+                    navController.popBackStack()
+                },
+                onForgotPasswordClicked = {
+                    navController.navigate(Screen.SendCode)
+                }
+            )
+        }
+
+        // --- SEND CODE SCREEN ---
+        composable(Screen.SendCode) {
+            SendCodeScreen(onBackClicked = {
+                navController.popBackStack()
+            }, onContinueClicked = {
+                navController.navigate(Screen.VerifyCode)
+            })
+        }
+
+        // --- VERIFY CODE SCREEN ---
+        composable(Screen.VerifyCode) {
+            VerifyCodeScreen(
+                onBackClicked = {
+                    navController.popBackStack()
+                },
+                onContinueClicked = {
+                    navController.navigate(Screen.NewPassword)
+                }
+            )
+        }
+
+        // --- NEW PASSWORD SCREEN ---
+        composable(Screen.NewPassword) {
+            NewPasswordScreen(onBackClicked = {
+                navController.popBackStack()
+            }, onCreatePasswordClicked = {
+                // TODO: Handle create password and navigate
+            })
         }
     }
 }

@@ -70,4 +70,7 @@ dependencies {
 
     // Coil para carga asíncrona de imágenes desde URL
     implementation("io.coil-kt:coil-compose:2.6.0")
+
+    // Material Icons Extended
+    implementation("androidx.compose.material:material-icons-extended:1.6.7")
 }

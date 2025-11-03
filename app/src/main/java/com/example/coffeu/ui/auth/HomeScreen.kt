@@ -66,11 +66,11 @@ val categories = listOf(
 // =================================================================
 @Composable
 fun HomeScreen(
-    // ✅ CORRECCIÓN 1: Se añade el parámetro USERNAME (necesario para AppNavigation)
     username: String,
     onLogout: () -> Unit = {},
     onSearchClicked: () -> Unit = {},
     onNotificationClicked: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {},
     authViewModel: AuthViewModel = viewModel() // <--- Obtener ViewModel
 ) {
 
@@ -86,7 +86,7 @@ fun HomeScreen(
 
     Scaffold(
         bottomBar = {
-            HomeBottomBar()
+            HomeBottomBar(onProfileClicked = onNavigateToProfile)
         },
         containerColor = Color.White
     ) { paddingValues ->
@@ -97,10 +97,10 @@ fun HomeScreen(
         ) {
             // 1. Header (Perfil y Ubicación)
             item {
-                // ✅ CORRECCIÓN 2: Pasamos el username al HomeHeader
                 HomeHeader(
                     userName = username,
-                    onNotificationClicked = onNotificationClicked
+                    onNotificationClicked = onNotificationClicked,
+                    onProfileImageClicked = onNavigateToProfile
                 )
             }
 
@@ -173,11 +173,11 @@ fun HomeScreen(
 // =================================================================
 @Composable
 fun HomeHeader(
-    // ✅ CORRECCIÓN 3: HomeHeader ahora recibe el nombre de usuario
     userName: String,
     deliveryLocation: String = "Moctezuma #100",
     notificationCount: Int = 13,
-    onNotificationClicked: () -> Unit
+    onNotificationClicked: () -> Unit,
+    onProfileImageClicked: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -196,7 +196,7 @@ fun HomeHeader(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .clickable { /* Acción de perfil */ }
+                    .clickable(onClick = onProfileImageClicked)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Column {
@@ -546,7 +546,7 @@ fun KitchenCard(kitchen: Kitchen) { // ✅ Ya no acepta onCardClick
 // 7. BOTTOM NAVIGATION BAR
 // =================================================================
 @Composable
-fun HomeBottomBar() {
+fun HomeBottomBar(onProfileClicked: () -> Unit) {
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 8.dp
@@ -564,7 +564,11 @@ fun HomeBottomBar() {
             val isSelected = label == selectedItem
             NavigationBarItem(
                 selected = isSelected,
-                onClick = { /* Acción de Navegación */ },
+                onClick = {
+                    if (label == "Profile") {
+                        onProfileClicked()
+                    }
+                },
                 icon = {
                     Icon(
                         imageVector = icon,
@@ -602,7 +606,8 @@ fun HomeScreenPreview() {
         // ✅ CORRECCIÓN: Ahora pasamos el valor 'username' (ej: "Stefanie")
         HomeScreen(
             username = "Stefanie", // <--- ¡Añadir este parámetro!
-            onLogout = {}
+            onLogout = {},
+            onNavigateToProfile = {}
         )
     }
 }
