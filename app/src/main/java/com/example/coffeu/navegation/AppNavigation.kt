@@ -100,24 +100,48 @@ fun AppNavigation(
 
         // --- PROFILE SCREEN ---
         composable(Screen.Profile) {
-            ProfileScreen(
-                onNavigateToEditProfile = {
-                    navController.navigate(Screen.EditProfile)
-                },
-                onNavigateToNotifications = {
-                    navController.navigate(Screen.Notifications)
-                },
-                onNavigateToChangePassword = {
-                    navController.navigate(Screen.ChangePassword)
+            val user = authViewModel.loginState?.user
+            if (user != null) {
+                ProfileScreen(
+                    userName = user.nombreUsuario,
+                    userEmail = user.email,
+                    onNavigateToEditProfile = {
+                        navController.navigate(Screen.EditProfile)
+                    },
+                    onNavigateToNotifications = {
+                        navController.navigate(Screen.Notifications)
+                    },
+                    onNavigateToChangePassword = {
+                        navController.navigate(Screen.ChangePassword)
+                    }
+                )
+            } else {
+                // If user data is not available, navigate back to the login screen.
+                navController.navigate(Screen.Login) {
+                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
                 }
-            )
+            }
         }
 
         // --- EDIT PROFILE SCREEN ---
         composable(Screen.EditProfile) {
-            EditProfileScreen(onBackClicked = {
-                navController.popBackStack()
-            })
+            val user = authViewModel.loginState?.user
+            if (user != null) {
+                EditProfileScreen(
+                    fullName = user.nombreUsuario,
+                    email = user.email,
+                    phoneNumber = user.telefonoCelular,
+                    dateOfBirth = "", // Pass an empty string for date of birth
+                    onBackClicked = {
+                        navController.popBackStack()
+                    }
+                )
+            } else {
+                // If user data is not available, navigate back to the login screen.
+                navController.navigate(Screen.Login) {
+                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                }
+            }
         }
 
         // --- NOTIFICATIONS SCREEN ---
