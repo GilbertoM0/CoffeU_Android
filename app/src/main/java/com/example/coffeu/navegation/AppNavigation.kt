@@ -1,9 +1,11 @@
 package com.example.coffeu.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.coffeu.ui.preview.SplashScreen
 import com.example.coffeu.ui.auth.HomeScreen
 import com.example.coffeu.ui.auth.LoginScreen
 import com.example.coffeu.ui.auth.RegisterScreen
@@ -14,13 +16,17 @@ import com.example.coffeu.ui.profilensetting.ChangePasswordScreen
 import com.example.coffeu.ui.profilensetting.EditProfileScreen
 import com.example.coffeu.ui.profilensetting.NotificationsScreen
 import com.example.coffeu.ui.profilensetting.ProfileScreen
+import com.example.coffeu.ui.preview.PreviewScreen
 import com.example.coffeu.ui.viewmodel.AuthViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import kotlinx.coroutines.delay
 
 // 1. Define las rutas de navegación de forma segura
 object Screen {
+    const val Splash = "splash_screen"
+    const val Preview = "preview_screen"
     const val Login = "login_screen"
     const val Register = "register_screen"
     const val Home = "home_screen/{username}"
@@ -41,8 +47,29 @@ fun AppNavigation(
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Login
+        startDestination = Screen.Splash
     ) {
+
+        // --- SPLASH SCREEN ---
+        composable(Screen.Splash) {
+            SplashScreen()
+            LaunchedEffect(Unit) {
+                delay(3000) // 3-second delay
+                navController.navigate(Screen.Preview) {
+                    popUpTo(Screen.Splash) { inclusive = true }
+                }
+            }
+        }
+
+        // --- PREVIEW SCREEN ---
+        composable(Screen.Preview) {
+            PreviewScreen(onNavigateToLogin = {
+                navController.navigate(Screen.Login) {
+                    popUpTo(Screen.Preview) { inclusive = true }
+                }
+            })
+        }
+
         // --- LOGIN SCREEN ---
         composable(Screen.Login) {
             LoginScreen(
@@ -100,24 +127,48 @@ fun AppNavigation(
 
         // --- PROFILE SCREEN ---
         composable(Screen.Profile) {
-            ProfileScreen(
-                onNavigateToEditProfile = {
-                    navController.navigate(Screen.EditProfile)
-                },
-                onNavigateToNotifications = {
-                    navController.navigate(Screen.Notifications)
-                },
-                onNavigateToChangePassword = {
-                    navController.navigate(Screen.ChangePassword)
+            val user = authViewModel.loginState?.user
+            if (user != null) {
+                ProfileScreen(
+                    userName = user.nombreUsuario,
+                    userEmail = user.email,
+                    onNavigateToEditProfile = {
+                        navController.navigate(Screen.EditProfile)
+                    },
+                    onNavigateToNotifications = {
+                        navController.navigate(Screen.Notifications)
+                    },
+                    onNavigateToChangePassword = {
+                        navController.navigate(Screen.ChangePassword)
+                    }
+                )
+            } else {
+                // If user data is not available, navigate back to the login screen.
+                navController.navigate(Screen.Login) {
+                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
                 }
-            )
+            }
         }
 
         // --- EDIT PROFILE SCREEN ---
         composable(Screen.EditProfile) {
-            EditProfileScreen(onBackClicked = {
-                navController.popBackStack()
-            })
+            val user = authViewModel.loginState?.user
+            if (user != null) {
+                EditProfileScreen(
+                    fullName = user.nombreUsuario,
+                    email = user.email,
+                    phoneNumber = user.telefonoCelular,
+                    dateOfBirth = "", // Pass an empty string for date of birth
+                    onBackClicked = {
+                        navController.popBackStack()
+                    }
+                )
+            } else {
+                // If user data is not available, navigate back to the login screen.
+                navController.navigate(Screen.Login) {
+                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                }
+            }
         }
 
         // --- NOTIFICATIONS SCREEN ---
