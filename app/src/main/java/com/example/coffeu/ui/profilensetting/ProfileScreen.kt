@@ -27,6 +27,8 @@ import com.example.coffeu.ui.theme.CoffeUTheme
 
 @Composable
 fun ProfileScreen(
+    userName: String,
+    userEmail: String,
     onNavigateToEditProfile: () -> Unit = {},
     onNavigateToNotifications: () -> Unit = {},
     onNavigateToChangePassword: () -> Unit = {}
@@ -51,13 +53,13 @@ fun ProfileScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Lucas Nathan",
+                text = userName,
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
             Text(
-                text = "wilson@09gail.com",
+                text = userEmail,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -126,6 +128,8 @@ fun ProfileMenuItem(icon: ImageVector, text: String, onClick: () -> Unit) {
 fun ProfileScreenPreview() {
     CoffeUTheme {
         ProfileScreen(
+            userName = "Lucas Nathan",
+            userEmail = "wilson@09gail.com",
             onNavigateToEditProfile = {},
             onNavigateToNotifications = {},
             onNavigateToChangePassword = {}
@@ -138,6 +142,8 @@ fun ProfileScreenPreview() {
 fun ProfileScreenDarkPreview() {
     CoffeUTheme(darkTheme = true) {
         ProfileScreen(
+            userName = "Lucas Nathan",
+            userEmail = "wilson@09gail.com",
             onNavigateToEditProfile = {},
             onNavigateToNotifications = {},
             onNavigateToChangePassword = {}

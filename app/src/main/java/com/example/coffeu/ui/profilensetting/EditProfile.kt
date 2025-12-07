@@ -25,11 +25,17 @@ import com.example.coffeu.ui.theme.CoffeUTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditProfileScreen(onBackClicked: () -> Unit) {
-    var fullName by remember { mutableStateOf("Lucas Nathan") }
-    var email by remember { mutableStateOf("lucas@09gmail.com") }
-    var phoneNumber by remember { mutableStateOf("308.555.0121") }
-    var dateOfBirth by remember { mutableStateOf("November 24, 2000") }
+fun EditProfileScreen(
+    fullName: String,
+    email: String,
+    phoneNumber: String,
+    dateOfBirth: String,
+    onBackClicked: () -> Unit
+) {
+    var currentFullName by remember { mutableStateOf(fullName) }
+    var currentEmail by remember { mutableStateOf(email) }
+    var currentPhoneNumber by remember { mutableStateOf(phoneNumber) }
+    var currentDateOfBirth by remember { mutableStateOf(dateOfBirth) }
 
     Scaffold(
         topBar = {
@@ -81,8 +87,8 @@ fun EditProfileScreen(onBackClicked: () -> Unit) {
 
             // Form Fields
             OutlinedTextField(
-                value = fullName,
-                onValueChange = { fullName = it },
+                value = currentFullName,
+                onValueChange = { currentFullName = it },
                 label = { Text("Full Name") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
@@ -91,8 +97,8 @@ fun EditProfileScreen(onBackClicked: () -> Unit) {
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
+                value = currentEmail,
+                onValueChange = { currentEmail = it },
                 label = { Text("Email") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
@@ -101,8 +107,8 @@ fun EditProfileScreen(onBackClicked: () -> Unit) {
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
-                value = phoneNumber,
-                onValueChange = { phoneNumber = it },
+                value = currentPhoneNumber,
+                onValueChange = { currentPhoneNumber = it },
                 label = { Text("Phone Number") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
@@ -111,8 +117,8 @@ fun EditProfileScreen(onBackClicked: () -> Unit) {
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
-                value = dateOfBirth,
-                onValueChange = { dateOfBirth = it },
+                value = currentDateOfBirth,
+                onValueChange = { currentDateOfBirth = it },
                 label = { Text("Date of Birth") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -141,7 +147,13 @@ fun EditProfileScreen(onBackClicked: () -> Unit) {
 @Composable
 fun EditProfileScreenPreview() {
     CoffeUTheme {
-        EditProfileScreen(onBackClicked = {})
+        EditProfileScreen(
+            fullName = "Lucas Nathan",
+            email = "lucas@09gmail.com",
+            phoneNumber = "308.555.0121",
+            dateOfBirth = "November 24, 2000",
+            onBackClicked = {}
+        )
     }
 }
 
@@ -149,6 +161,12 @@ fun EditProfileScreenPreview() {
 @Composable
 fun EditProfileScreenDarkPreview() {
     CoffeUTheme(darkTheme = true) {
-        EditProfileScreen(onBackClicked = {})
+        EditProfileScreen(
+            fullName = "Lucas Nathan",
+            email = "lucas@09gmail.com",
+            phoneNumber = "308.555.0121",
+            dateOfBirth = "November 24, 2000",
+            onBackClicked = {}
+        )
     }
 }
