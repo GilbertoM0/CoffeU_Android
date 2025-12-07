@@ -52,13 +52,13 @@ data class Kitchen(
 )
 
 // --- Simulación de Datos (PLACEHOLDERS) ---
-val categories = listOf(
+/*val categories = listOf(
     FoodCategory(1, "Pizza", R.drawable.img),
     FoodCategory(2, "Burgers", R.drawable.img),
     FoodCategory(3, "Cookies", R.drawable.img),
     FoodCategory(4, "Pasta", R.drawable.img),
     FoodCategory(5, "Sushi", R.drawable.img),
-)
+)*/
 
 
 // =================================================================
@@ -115,9 +115,9 @@ fun HomeScreen(
             }
 
             // 4. Categories Row
-            item {
+           /* item {
                 FoodCategoriesRow(categories = categories)
-            }
+            }*/
 
             // 5. Kitchens Near You Header
             item {
