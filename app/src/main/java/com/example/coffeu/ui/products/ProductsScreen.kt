@@ -91,7 +91,7 @@ fun ProductDetailScreen(product: Product) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        InfoChip("Free Delivery")
+                        InfoChip("Envio Gratis")
                         InfoChip("20-30min")
                         InfoChip(
                             "4.5",
@@ -100,7 +100,7 @@ fun ProductDetailScreen(product: Product) {
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Description",
+                        text = "Descripcion",
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -115,7 +115,7 @@ fun ProductDetailScreen(product: Product) {
 
         // Top Bar overlay
         TopAppBar(
-            title = { Text("Menu Detail", color = MaterialTheme.colorScheme.onPrimary) },
+            title = { Text("", color = MaterialTheme.colorScheme.onPrimary) },
             navigationIcon = {
                 Surface(
                     shape = CircleShape,
@@ -184,7 +184,7 @@ fun ProductDetailScreen(product: Product) {
             ) {
                 Icon(Icons.Default.ShoppingCart, contentDescription = null)
                 Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
-                Text("Add to Cart")
+                Text("Agregar al carrito")
             }
         }
     }
