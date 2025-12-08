@@ -1,6 +1,10 @@
 package com.example.coffeu.ui.profilensetting
 
-import androidx.compose.foundation.Image
+import android.content.Context
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -14,14 +18,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.example.coffeu.R
 import com.example.coffeu.ui.theme.CoffeUTheme
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,12 +37,27 @@ fun EditProfileScreen(
     dateOfBirth: String,
     onBackClicked: () -> Unit
 ) {
-    var currentFullName by remember { mutableStateOf(fullName) }
-    var currentEmail by remember { mutableStateOf(email) }
-    var currentPhoneNumber by remember { mutableStateOf(phoneNumber) }
-    var currentDateOfBirth by remember { mutableStateOf(dateOfBirth) }
+    val context = LocalContext.current
+    val sharedPreferences = remember {
+        context.getSharedPreferences("user_profile_prefs", Context.MODE_PRIVATE)
+    }
+
+    var currentFullName by remember { mutableStateOf(sharedPreferences.getString("full_name", fullName) ?: fullName) }
+    var currentEmail by remember { mutableStateOf(sharedPreferences.getString("email", email) ?: email) }
+    var currentPhoneNumber by remember { mutableStateOf(sharedPreferences.getString("phone_number", phoneNumber) ?: phoneNumber) }
+    var currentDateOfBirth by remember { mutableStateOf(sharedPreferences.getString("date_of_birth", dateOfBirth) ?: dateOfBirth) }
+    var imageUri by remember { mutableStateOf(sharedPreferences.getString("image_uri", null)?.let { Uri.parse(it) }) }
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri -> imageUri = uri }
+    )
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Personal Data", fontWeight = FontWeight.Bold) },
@@ -52,19 +72,19 @@ fun EditProfileScreen(
                 )
             )
         }
-    ) {
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(it)
+                .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.background)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Profile Image
             Box {
-                Image(
-                    painter = painterResource(id = R.drawable.fanny),
+                AsyncImage(
+                    model = imageUri ?: R.drawable.fanny,
                     contentDescription = "Profile Picture",
                     modifier = Modifier
                         .size(120.dp)
@@ -72,7 +92,11 @@ fun EditProfileScreen(
                     contentScale = ContentScale.Crop
                 )
                 FloatingActionButton(
-                    onClick = { /* TODO: Handle edit image */ },
+                    onClick = {
+                        photoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    },
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .size(40.dp),
@@ -130,7 +154,19 @@ fun EditProfileScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = { /* TODO: Save Changes */ },
+                onClick = {
+                    scope.launch {
+                        with(sharedPreferences.edit()) {
+                            putString("full_name", currentFullName)
+                            putString("email", currentEmail)
+                            putString("phone_number", currentPhoneNumber)
+                            putString("date_of_birth", currentDateOfBirth)
+                            putString("image_uri", imageUri?.toString())
+                            apply()
+                        }
+                        snackbarHostState.showSnackbar("Changes saved successfully!")
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
