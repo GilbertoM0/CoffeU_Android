@@ -1,9 +1,10 @@
 package com.example.coffeu.ui.viewmodel
 
-import androidx.lifecycle.ViewModel
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.coffeu.data.RetrofitClient
 import com.example.coffeu.data.model.Kitchen
@@ -26,12 +27,25 @@ class AuthViewModel : ViewModel() {
         private set
 
     // Para Kitchen la carga de los products
-    // ✅ ESTADO para la lista de cocinas
     var kitchenList by mutableStateOf<List<Kitchen>>(emptyList())
         private set
     var kitchenListError by mutableStateOf<String?>(null)
 
-    // --- CORRECCIÓN: Usamos 'updateErrorMessage' para evitar el choque de firmas (Clash) ---
+    // ✅ ESTADO para la lista de favoritos
+    val favoriteKitchens = mutableStateListOf<Kitchen>()
+
+    fun isFavorite(kitchen: Kitchen): Boolean {
+        return favoriteKitchens.any { it.id == kitchen.id }
+    }
+
+    fun toggleFavorite(kitchen: Kitchen) {
+        if (isFavorite(kitchen)) {
+            favoriteKitchens.removeIf { it.id == kitchen.id }
+        } else {
+            favoriteKitchens.add(kitchen)
+        }
+    }
+
     fun updateErrorMessage(message: String?) {
         errorMessage = message
     }
@@ -95,9 +109,6 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-
-
-
     // ✅ FUNCIÓN para cargar la lista de cocinas
     fun loadKitchens() {
         if (kitchenList.isNotEmpty()) return // No recargar si ya hay datos
@@ -116,8 +127,6 @@ class AuthViewModel : ViewModel() {
             }
         }
     }
-
-
 
     // Función para limpiar el estado de éxito después de navegar o un error
     fun resetRegisterState() {

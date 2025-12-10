@@ -16,6 +16,7 @@ import com.example.coffeu.ui.password.NewPasswordScreen
 import com.example.coffeu.ui.password.SendCodeScreen
 import com.example.coffeu.ui.password.VerifyCodeScreen
 import com.example.coffeu.ui.products.AllProductsScreen
+import com.example.coffeu.ui.products.FavProductsScreen
 import com.example.coffeu.ui.products.ProductDetailScreen
 import com.example.coffeu.ui.profilensetting.ChangePasswordScreen
 import com.example.coffeu.ui.profilensetting.EditProfileScreen
@@ -44,6 +45,7 @@ object Screen {
     const val NewPassword = "new_password_screen"
     const val ProductDetail = "product_detail_screen/{kitchenId}"
     const val AllProducts = "all_products_screen"
+    const val FavoriteProducts = "favorite_products_screen"
 }
 
 @Composable
@@ -150,6 +152,9 @@ fun AppNavigation(
                 onNavigateToProfile = {
                     navController.navigate(Screen.Profile)
                 },
+                onNavigateToFavorites = {
+                    navController.navigate(Screen.FavoriteProducts)
+                },
                 onNavigateToProductDetail = { kitchenId ->
                     navController.navigate("product_detail_screen/$kitchenId")
                 },
@@ -170,6 +175,17 @@ fun AppNavigation(
             )
         }
 
+        // --- FAVORITE PRODUCTS SCREEN ---
+        composable(Screen.FavoriteProducts) {
+            FavProductsScreen(
+                authViewModel = authViewModel,
+                onBackClicked = { navController.popBackStack() },
+                onProductClicked = { kitchenId ->
+                    navController.navigate("product_detail_screen/$kitchenId")
+                }
+            )
+        }
+
         // --- PRODUCT DETAIL SCREEN ---
         composable(
             route = Screen.ProductDetail,
@@ -178,7 +194,7 @@ fun AppNavigation(
             val kitchenId = backStackEntry.arguments?.getInt("kitchenId")
             val kitchen = authViewModel.kitchenList.find { it.id == kitchenId }
             if (kitchen != null) {
-                ProductDetailScreen(kitchen = kitchen)
+                ProductDetailScreen(kitchen = kitchen, authViewModel = authViewModel)
             } else {
                 navController.popBackStack()
             }
