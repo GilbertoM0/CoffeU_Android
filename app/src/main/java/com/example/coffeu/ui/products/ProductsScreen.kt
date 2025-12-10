@@ -35,6 +35,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ProductDetailScreen(
     kitchen: Kitchen,
+    onBackClicked: () -> Unit, // ✅ Acción para volver atrás
     authViewModel: AuthViewModel = viewModel()
 ) {
     val isFavorite = authViewModel.isFavorite(kitchen)
@@ -119,7 +120,7 @@ fun ProductDetailScreen(
                         modifier = Modifier.padding(start = 8.dp),
                         color = MaterialTheme.colorScheme.surface
                     ) {
-                        IconButton(onClick = { /* Handle back */ }) {
+                        IconButton(onClick = onBackClicked) { // ✅ Conectado
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
                         }
                     }
@@ -236,7 +237,7 @@ fun ProductDetailScreenPreview() {
             distance = "1.2km",
             discount = "10%"
         )
-        ProductDetailScreen(kitchen = sampleKitchen)
+        ProductDetailScreen(kitchen = sampleKitchen, onBackClicked = {}) // ✅ Preview actualizado
     }
 }
 
@@ -257,6 +258,6 @@ fun ProductDetailScreenDarkPreview() {
             distance = "1.2km",
             discount = "10%"
         )
-        ProductDetailScreen(kitchen = sampleKitchen)
+        ProductDetailScreen(kitchen = sampleKitchen, onBackClicked = {}) // ✅ Preview actualizado
     }
 }

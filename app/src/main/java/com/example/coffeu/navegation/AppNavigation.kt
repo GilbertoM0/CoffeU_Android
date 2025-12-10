@@ -194,7 +194,11 @@ fun AppNavigation(
             val kitchenId = backStackEntry.arguments?.getInt("kitchenId")
             val kitchen = authViewModel.kitchenList.find { it.id == kitchenId }
             if (kitchen != null) {
-                ProductDetailScreen(kitchen = kitchen, authViewModel = authViewModel)
+                ProductDetailScreen(
+                    kitchen = kitchen,
+                    authViewModel = authViewModel,
+                    onBackClicked = { navController.popBackStack() } // ✅ Conectado
+                )
             } else {
                 navController.popBackStack()
             }
