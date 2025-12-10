@@ -1,6 +1,5 @@
 package com.example.coffeu.ui.products
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,17 +42,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.coffeu.data.model.Product
+import coil.compose.AsyncImage
+import com.example.coffeu.data.model.Kitchen
 import com.example.coffeu.ui.theme.CoffeUTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductDetailScreen(product: Product) {
+fun ProductDetailScreen(kitchen: Kitchen) {
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
@@ -60,9 +60,9 @@ fun ProductDetailScreen(product: Product) {
                 .background(MaterialTheme.colorScheme.background)
         ) {
             item {
-                Image(
-                    painter = painterResource(id = com.example.coffeu.R.drawable.home_pizza_con_chorizo_jamon_y_queso), // Placeholder
-                    contentDescription = product.nombre,
+                AsyncImage(
+                    model = kitchen.imageUrl,
+                    contentDescription = kitchen.name,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(300.dp),
@@ -75,15 +75,17 @@ fun ProductDetailScreen(product: Product) {
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.Top
                     ) {
                         Text(
-                            text = product.nombre,
-                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
+                            text = kitchen.name,
+                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                            modifier = Modifier.weight(1f),
+                            color = MaterialTheme.colorScheme.onBackground
                         )
+                        Spacer(modifier = Modifier.width(16.dp))
                         Text(
-                            text = "$${product.precio}",
+                            text = "$${kitchen.price}",
                             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                         )
                     }
@@ -92,20 +94,21 @@ fun ProductDetailScreen(product: Product) {
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         InfoChip("Envio Gratis")
-                        InfoChip("20-30min")
+                        InfoChip(kitchen.deliveryTime)
                         InfoChip(
-                            "4.5",
+                            text = kitchen.rating.toString(),
                             icon = { Icon(Icons.Default.Star, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                         )
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Descripcion",
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = product.descripcion,
+                        text = kitchen.description,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
@@ -115,15 +118,16 @@ fun ProductDetailScreen(product: Product) {
 
         // Top Bar overlay
         TopAppBar(
-            title = { Text("", color = MaterialTheme.colorScheme.onPrimary) },
+            title = { Text("Menu Detail", color = Color.White) },
             navigationIcon = {
                 Surface(
                     shape = CircleShape,
                     shadowElevation = 4.dp,
-                    modifier = Modifier.padding(start = 8.dp)
+                    modifier = Modifier.padding(start = 8.dp),
+                    color = MaterialTheme.colorScheme.surface
                 ) {
                     IconButton(onClick = { /* Handle back */ }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             },
@@ -131,10 +135,11 @@ fun ProductDetailScreen(product: Product) {
                 Surface(
                     shape = CircleShape,
                     shadowElevation = 4.dp,
-                    modifier = Modifier.padding(end = 8.dp)
+                    modifier = Modifier.padding(end = 8.dp),
+                    color = MaterialTheme.colorScheme.surface
                 ) {
                     IconButton(onClick = { /* Handle favorite */ }) {
-                        Icon(Icons.Default.FavoriteBorder, contentDescription = "Favorite")
+                        Icon(Icons.Default.FavoriteBorder, contentDescription = "Favorite", tint = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             },
@@ -166,7 +171,7 @@ fun ProductDetailScreen(product: Product) {
                 ) {
                     Text("-", fontSize = 20.sp)
                 }
-                Text(text = quantity.toString(), style = MaterialTheme.typography.headlineSmall)
+                Text(text = quantity.toString(), style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground)
                 OutlinedButton(
                     onClick = { quantity++ },
                     shape = CircleShape,
@@ -206,18 +211,44 @@ fun InfoChip(text: String, icon: @Composable (() -> Unit)? = null) {
 }
 
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "Light Mode")
 @Composable
 fun ProductDetailScreenPreview() {
     CoffeUTheme {
-        val sampleProduct = Product(
+        val sampleKitchen = Kitchen(
             id = 1,
-            nombre = "Classic Cheese Pizza",
-            descripcion = "Burger With Meat is a typical food from our restaurant that is much in demand by many people, this is very recommended for you",
+            name = "Classic Cheese Pizza with extra cheese and pepperoni",
+            description = "Burger With Meat is a typical food from our restaurant that is much in demand by many people, this is very recommended for you",
             stock = 10,
-            imagen_url = "",
-            precio = 20.00
+            imageUrl = "",
+            price = "20.00",
+            rating = 4.5,
+            reviewCount = 120,
+            deliveryTime = "20-30 min",
+            distance = "1.2km",
+            discount = "10%"
         )
-        ProductDetailScreen(product = sampleProduct)
+        ProductDetailScreen(kitchen = sampleKitchen)
+    }
+}
+
+@Preview(showBackground = true, name = "Dark Mode")
+@Composable
+fun ProductDetailScreenDarkPreview() {
+    CoffeUTheme(darkTheme = true) {
+        val sampleKitchen = Kitchen(
+            id = 1,
+            name = "Classic Cheese Pizza with extra cheese and pepperoni",
+            description = "Burger With Meat is a typical food from our restaurant that is much in demand by many people, this is very recommended for you",
+            stock = 10,
+            imageUrl = "",
+            price = "20.00",
+            rating = 4.5,
+            reviewCount = 120,
+            deliveryTime = "20-30 min",
+            distance = "1.2km",
+            discount = "10%"
+        )
+        ProductDetailScreen(kitchen = sampleKitchen)
     }
 }

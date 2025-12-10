@@ -1,7 +1,10 @@
 package com.example.coffeu.navigation
 
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -12,6 +15,8 @@ import com.example.coffeu.ui.auth.RegisterScreen
 import com.example.coffeu.ui.password.NewPasswordScreen
 import com.example.coffeu.ui.password.SendCodeScreen
 import com.example.coffeu.ui.password.VerifyCodeScreen
+import com.example.coffeu.ui.products.AllProductsScreen
+import com.example.coffeu.ui.products.ProductDetailScreen
 import com.example.coffeu.ui.profilensetting.ChangePasswordScreen
 import com.example.coffeu.ui.profilensetting.EditProfileScreen
 import com.example.coffeu.ui.profilensetting.NotificationsScreen
@@ -37,6 +42,8 @@ object Screen {
     const val SendCode = "send_code_screen"
     const val VerifyCode = "verify_code_screen"
     const val NewPassword = "new_password_screen"
+    const val ProductDetail = "product_detail_screen/{kitchenId}"
+    const val AllProducts = "all_products_screen"
 }
 
 @Composable
@@ -44,10 +51,23 @@ fun AppNavigation(
     authViewModel: AuthViewModel = viewModel()
 ) {
     val navController = rememberNavController()
+    val context = LocalContext.current
+    val sharedPreferences = remember {
+        context.getSharedPreferences("user_session_prefs", Context.MODE_PRIVATE)
+    }
+
+    val isLoggedIn = remember { sharedPreferences.getBoolean("is_logged_in", false) }
+    val username = remember { sharedPreferences.getString("username", "") ?: "" }
+
+    val startDestination = if (isLoggedIn) {
+        Screen.Home.replace("{username}", username)
+    } else {
+        Screen.Splash
+    }
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Splash
+        startDestination = startDestination
     ) {
 
         // --- SPLASH SCREEN ---
@@ -76,8 +96,8 @@ fun AppNavigation(
                 authViewModel = authViewModel,
                 onLoginSuccess = { token ->
                     val loginResponse = authViewModel.loginState
-                    val username = loginResponse?.user?.nombreUsuario ?: "Invitado"
-                    navController.navigate(Screen.Home.replace("{username}", username)) {
+                    val loggedInUsername = loginResponse?.user?.nombreUsuario ?: "Invitado"
+                    navController.navigate(Screen.Home.replace("{username}", loggedInUsername)) {
                         popUpTo(Screen.Login) { inclusive = true }
                     }
                 },
@@ -110,19 +130,58 @@ fun AppNavigation(
                 defaultValue = "Error"
             })
         ) { backStackEntry ->
-            val username = backStackEntry.arguments?.getString("username") ?: "Error"
+            val currentUsername = backStackEntry.arguments?.getString("username") ?: "Error"
             HomeScreen(
-                username = username,
+                username = currentUsername,
+                authViewModel = authViewModel,
                 onLogout = {
                     authViewModel.logout()
+                    with(sharedPreferences.edit()) {
+                        clear()
+                        apply()
+                    }
                     navController.navigate(Screen.Login) {
                         popUpTo(navController.graph.startDestinationId) { inclusive = true }
                     }
                 },
+                onSearchClicked = {
+                    navController.navigate(Screen.AllProducts)
+                },
                 onNavigateToProfile = {
                     navController.navigate(Screen.Profile)
+                },
+                onNavigateToProductDetail = { kitchenId ->
+                    navController.navigate("product_detail_screen/$kitchenId")
+                },
+                onNavigateToAllProducts = {
+                    navController.navigate(Screen.AllProducts)
                 }
             )
+        }
+
+        // --- ALL PRODUCTS SCREEN ---
+        composable(Screen.AllProducts) {
+            AllProductsScreen(
+                authViewModel = authViewModel,
+                onBackClicked = { navController.popBackStack() },
+                onProductClicked = { kitchenId ->
+                    navController.navigate("product_detail_screen/$kitchenId")
+                }
+            )
+        }
+
+        // --- PRODUCT DETAIL SCREEN ---
+        composable(
+            route = Screen.ProductDetail,
+            arguments = listOf(navArgument("kitchenId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val kitchenId = backStackEntry.arguments?.getInt("kitchenId")
+            val kitchen = authViewModel.kitchenList.find { it.id == kitchenId }
+            if (kitchen != null) {
+                ProductDetailScreen(kitchen = kitchen)
+            } else {
+                navController.popBackStack()
+            }
         }
 
         // --- PROFILE SCREEN ---
@@ -143,7 +202,6 @@ fun AppNavigation(
                     }
                 )
             } else {
-                // If user data is not available, navigate back to the login screen.
                 navController.navigate(Screen.Login) {
                     popUpTo(navController.graph.startDestinationId) { inclusive = true }
                 }
@@ -158,13 +216,10 @@ fun AppNavigation(
                     fullName = user.nombreUsuario,
                     email = user.email,
                     phoneNumber = user.telefonoCelular,
-                    dateOfBirth = "", // Pass an empty string for date of birth
-                    onBackClicked = {
-                        navController.popBackStack()
-                    }
+                    dateOfBirth = "",
+                    onBackClicked = { navController.popBackStack() }
                 )
             } else {
-                // If user data is not available, navigate back to the login screen.
                 navController.navigate(Screen.Login) {
                     popUpTo(navController.graph.startDestinationId) { inclusive = true }
                 }
@@ -173,51 +228,39 @@ fun AppNavigation(
 
         // --- NOTIFICATIONS SCREEN ---
         composable(Screen.Notifications) {
-            NotificationsScreen(onBackClicked = {
-                navController.popBackStack()
-            })
+            NotificationsScreen(onBackClicked = { navController.popBackStack() })
         }
 
         // --- CHANGE PASSWORD SCREEN ---
         composable(Screen.ChangePassword) {
             ChangePasswordScreen(
-                onBackClicked = {
-                    navController.popBackStack()
-                },
-                onForgotPasswordClicked = {
-                    navController.navigate(Screen.SendCode)
-                }
+                onBackClicked = { navController.popBackStack() },
+                onForgotPasswordClicked = { navController.navigate(Screen.SendCode) }
             )
         }
 
         // --- SEND CODE SCREEN ---
         composable(Screen.SendCode) {
-            SendCodeScreen(onBackClicked = {
-                navController.popBackStack()
-            }, onContinueClicked = {
-                navController.navigate(Screen.VerifyCode)
-            })
+            SendCodeScreen(
+                onBackClicked = { navController.popBackStack() },
+                onContinueClicked = { navController.navigate(Screen.VerifyCode) }
+            )
         }
 
         // --- VERIFY CODE SCREEN ---
         composable(Screen.VerifyCode) {
             VerifyCodeScreen(
-                onBackClicked = {
-                    navController.popBackStack()
-                },
-                onContinueClicked = {
-                    navController.navigate(Screen.NewPassword)
-                }
+                onBackClicked = { navController.popBackStack() },
+                onContinueClicked = { navController.navigate(Screen.NewPassword) }
             )
         }
 
         // --- NEW PASSWORD SCREEN ---
         composable(Screen.NewPassword) {
-            NewPasswordScreen(onBackClicked = {
-                navController.popBackStack()
-            }, onCreatePasswordClicked = {
-                // TODO: Handle create password and navigate
-            })
+            NewPasswordScreen(
+                onBackClicked = { navController.popBackStack() },
+                onCreatePasswordClicked = { /* TODO */ }
+            )
         }
     }
 }
