@@ -19,6 +19,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,6 +38,7 @@ import com.example.coffeu.R // Necesitas tener R.drawable.xxx
 import com.example.coffeu.data.model.Kitchen
 import com.example.coffeu.ui.theme.CoffeUTheme
 import com.example.coffeu.ui.viewmodel.AuthViewModel
+import kotlinx.coroutines.launch
 
 // =================================================================
 // ESTRUCTURA DE DATOS (MODELOS)
@@ -63,6 +65,7 @@ fun HomeScreen(
     onSearchClicked: () -> Unit = {},
     onNotificationClicked: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
+    onNavigateToFavorites: () -> Unit, // Callback para navegar a favoritos
     onNavigateToProductDetail: (Int) -> Unit, // Callback para navegar
     onNavigateToAllProducts: () -> Unit, // Callback para ver todos
     authViewModel: AuthViewModel = viewModel() // <--- Obtener ViewModel
@@ -89,9 +92,16 @@ fun HomeScreen(
         shuffledKitchens.drop(10).take(10)
     }
 
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            HomeBottomBar(onProfileClicked = onNavigateToProfile)
+            HomeBottomBar(
+                onProfileClicked = onNavigateToProfile,
+                onFavoritesClicked = onNavigateToFavorites
+            )
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
@@ -163,7 +173,14 @@ fun HomeScreen(
                         ) {                            items(randomKitchens) { kitchen -> // ✅ Usar la lista aleatoria
                                 KitchenCard(
                                     kitchen = kitchen,
-                                    onCardClick = { onNavigateToProductDetail(kitchen.id) }
+                                    authViewModel = authViewModel,
+                                    onCardClick = { onNavigateToProductDetail(kitchen.id) },
+                                    onToggleFavorite = {
+                                        authViewModel.toggleFavorite(kitchen)
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar("${kitchen.name} ha sido añadido a favoritos")
+                                        }
+                                    }
                                 )
                             }
                         }
@@ -188,7 +205,14 @@ fun HomeScreen(
                         items(secondRandomKitchens) { kitchen ->
                             KitchenCard(
                                 kitchen = kitchen,
-                                onCardClick = { onNavigateToProductDetail(kitchen.id) }
+                                authViewModel = authViewModel,
+                                onCardClick = { onNavigateToProductDetail(kitchen.id) },
+                                onToggleFavorite = {
+                                    authViewModel.toggleFavorite(kitchen)
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar("${kitchen.name} ha sido añadido a favoritos")
+                                    }
+                                }
                             )
                         }
                     }
@@ -450,7 +474,14 @@ fun KitchensHeader(title: String, onSeeAllClicked: () -> Unit = {}) {
 // 6. KITCHEN CARD
 // =================================================================
 @Composable
-fun KitchenCard(kitchen: Kitchen, onCardClick: () -> Unit) {
+fun KitchenCard(
+    kitchen: Kitchen,
+    authViewModel: AuthViewModel,
+    onCardClick: () -> Unit,
+    onToggleFavorite: () -> Unit
+) {
+    val isFavorite = authViewModel.isFavorite(kitchen)
+
     Card(
         modifier = Modifier
             .width(260.dp)
@@ -484,9 +515,9 @@ fun KitchenCard(kitchen: Kitchen, onCardClick: () -> Unit) {
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 )
                 Icon(
-                    imageVector = Icons.Default.Favorite,
+                    imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                     contentDescription = "Favorite",
-                    tint = Color.White,
+                    tint = if (isFavorite) Color.Red else Color.White,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp)
@@ -494,7 +525,7 @@ fun KitchenCard(kitchen: Kitchen, onCardClick: () -> Unit) {
                         .clip(CircleShape)
                         .background(Color.Black.copy(alpha = 0.4f))
                         .padding(4.dp)
-                        .clickable { /* Acción de Favorito */ }
+                        .clickable(onClick = onToggleFavorite)
                 )
             }
             Column(modifier = Modifier.padding(12.dp)) {
@@ -556,7 +587,7 @@ fun KitchenCard(kitchen: Kitchen, onCardClick: () -> Unit) {
 // 7. BOTTOM NAVIGATION BAR
 // =================================================================
 @Composable
-fun HomeBottomBar(onProfileClicked: () -> Unit) {
+fun HomeBottomBar(onProfileClicked: () -> Unit, onFavoritesClicked: () -> Unit) {
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 8.dp
@@ -574,8 +605,9 @@ fun HomeBottomBar(onProfileClicked: () -> Unit) {
             NavigationBarItem(
                 selected = isSelected,
                 onClick = {
-                    if (label == "Profile") {
-                        onProfileClicked()
+                    when (label) {
+                        "Profile" -> onProfileClicked()
+                        "Favorites" -> onFavoritesClicked()
                     }
                 },
                 icon = {
@@ -617,7 +649,8 @@ fun HomeScreenPreview() {
             onLogout = {},
             onNavigateToProfile = {},
             onNavigateToProductDetail = {},
-            onNavigateToAllProducts = {}
+            onNavigateToAllProducts = {},
+            onNavigateToFavorites = {}
         )
     }
 }
@@ -631,7 +664,8 @@ fun HomeScreenDarkPreview() {
             onLogout = {},
             onNavigateToProfile = {},
             onNavigateToProductDetail = {},
-            onNavigateToAllProducts = {}
+            onNavigateToAllProducts = {},
+            onNavigateToFavorites = {}
         )
     }
 }

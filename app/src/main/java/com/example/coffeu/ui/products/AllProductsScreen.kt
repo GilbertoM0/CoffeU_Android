@@ -2,18 +2,7 @@ package com.example.coffeu.ui.products
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,20 +11,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -72,6 +51,20 @@ fun AllProductsScreen(
     val isLoading = authViewModel.isLoading
     val error = authViewModel.kitchenListError
 
+    var searchText by remember { mutableStateOf("") }
+
+    val filteredKitchens by remember(searchText, allKitchens) {
+        derivedStateOf {
+            if (searchText.isBlank()) {
+                allKitchens
+            } else {
+                allKitchens.filter {
+                    it.name.contains(searchText, ignoreCase = true)
+                }
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -95,7 +88,6 @@ fun AllProductsScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             // Search Bar
-            var searchText by remember { mutableStateOf("") }
             OutlinedTextField(
                 value = searchText,
                 onValueChange = { searchText = it },
@@ -127,7 +119,7 @@ fun AllProductsScreen(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        items(allKitchens) { kitchen ->
+                        items(filteredKitchens) { kitchen ->
                             ProductRowItem(kitchen = kitchen, onProductClicked = {
                                 onProductClicked(kitchen.id)
                             })
@@ -193,23 +185,7 @@ fun ProductRowItem(kitchen: Kitchen, onProductClicked: () -> Unit) {
 @Preview(showBackground = true, name = "Light Mode")
 @Composable
 fun AllProductsScreenPreview() {
-    val sampleKitchens = List(5) {
-        Kitchen(
-            id = it,
-            name = "Classic Cheese Pizza",
-            description = "...",
-            stock = 10,
-            imageUrl = "",
-            price = "15.00",
-            rating = 4.2,
-            reviewCount = 92,
-            deliveryTime = "15-30 min",
-            distance = "1.3 km",
-            discount = ""
-        )
-    }
     CoffeUTheme {
-        // Llamada al composable sin el ViewModel para la preview
         AllProductsScreen(onBackClicked = {}, onProductClicked = {})
     }
 }
@@ -217,21 +193,6 @@ fun AllProductsScreenPreview() {
 @Preview(showBackground = true, name = "Dark Mode")
 @Composable
 fun AllProductsScreenDarkPreview() {
-    val sampleKitchens = List(5) {
-        Kitchen(
-            id = it,
-            name = "Classic Cheese Pizza",
-            description = "...",
-            stock = 10,
-            imageUrl = "",
-            price = "15.00",
-            rating = 4.2,
-            reviewCount = 92,
-            deliveryTime = "15-30 min",
-            distance = "1.3 km",
-            discount = ""
-        )
-    }
     CoffeUTheme(darkTheme = true) {
         AllProductsScreen(onBackClicked = {}, onProductClicked = {})
     }
