@@ -27,6 +27,7 @@ import com.example.coffeu.ui.viewmodel.AuthViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.example.coffeu.ui.myorder.MyOrderScreen
 import kotlinx.coroutines.delay
 
 // 1. Define las rutas de navegación de forma segura
@@ -46,6 +47,7 @@ object Screen {
     const val ProductDetail = "product_detail_screen/{kitchenId}"
     const val AllProducts = "all_products_screen"
     const val FavoriteProducts = "favorite_products_screen"
+    const val MyOrder = "my_order_screen"
 }
 
 @Composable
@@ -155,6 +157,9 @@ fun AppNavigation(
                 onNavigateToFavorites = {
                     navController.navigate(Screen.FavoriteProducts)
                 },
+                onNavigateToMyOrder = {
+                    navController.navigate(Screen.MyOrder)
+                },
                 onNavigateToProductDetail = { kitchenId ->
                     navController.navigate("product_detail_screen/$kitchenId")
                 },
@@ -184,6 +189,11 @@ fun AppNavigation(
                     navController.navigate("product_detail_screen/$kitchenId")
                 }
             )
+        }
+
+        // --- MY ORDER SCREEN ---
+        composable(Screen.MyOrder) {
+            MyOrderScreen(authViewModel = authViewModel)
         }
 
         // --- PRODUCT DETAIL SCREEN ---

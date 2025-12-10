@@ -190,7 +190,12 @@ fun ProductDetailScreen(
                     }
                 }
                 Button(
-                    onClick = { /* TODO: Add to cart */ },
+                    onClick = {
+                        authViewModel.addToCart(kitchen)
+                        scope.launch {
+                            snackbarHostState.showSnackbar("${kitchen.name} ha sido añadido al carrito")
+                        }
+                    },
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.height(50.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)

@@ -66,6 +66,7 @@ fun HomeScreen(
     onNotificationClicked: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToFavorites: () -> Unit, // Callback para navegar a favoritos
+    onNavigateToMyOrder: () -> Unit,
     onNavigateToProductDetail: (Int) -> Unit, // Callback para navegar
     onNavigateToAllProducts: () -> Unit, // Callback para ver todos
     authViewModel: AuthViewModel = viewModel() // <--- Obtener ViewModel
@@ -100,7 +101,8 @@ fun HomeScreen(
         bottomBar = {
             HomeBottomBar(
                 onProfileClicked = onNavigateToProfile,
-                onFavoritesClicked = onNavigateToFavorites
+                onFavoritesClicked = onNavigateToFavorites,
+                onMyOrderClicked = onNavigateToMyOrder
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -587,7 +589,7 @@ fun KitchenCard(
 // 7. BOTTOM NAVIGATION BAR
 // =================================================================
 @Composable
-fun HomeBottomBar(onProfileClicked: () -> Unit, onFavoritesClicked: () -> Unit) {
+fun HomeBottomBar(onProfileClicked: () -> Unit, onFavoritesClicked: () -> Unit, onMyOrderClicked: () -> Unit) {
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 8.dp
@@ -608,6 +610,7 @@ fun HomeBottomBar(onProfileClicked: () -> Unit, onFavoritesClicked: () -> Unit) 
                     when (label) {
                         "Profile" -> onProfileClicked()
                         "Favorites" -> onFavoritesClicked()
+                        "My Order" -> onMyOrderClicked()
                     }
                 },
                 icon = {
@@ -650,7 +653,8 @@ fun HomeScreenPreview() {
             onNavigateToProfile = {},
             onNavigateToProductDetail = {},
             onNavigateToAllProducts = {},
-            onNavigateToFavorites = {}
+            onNavigateToFavorites = {},
+            onNavigateToMyOrder = {}
         )
     }
 }
@@ -665,7 +669,8 @@ fun HomeScreenDarkPreview() {
             onNavigateToProfile = {},
             onNavigateToProductDetail = {},
             onNavigateToAllProducts = {},
-            onNavigateToFavorites = {}
+            onNavigateToFavorites = {},
+            onNavigateToMyOrder = {}
         )
     }
 }

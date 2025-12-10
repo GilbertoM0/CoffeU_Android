@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.coffeu.data.RetrofitClient
+import com.example.coffeu.data.model.CartItem
 import com.example.coffeu.data.model.Kitchen
 import com.example.coffeu.data.model.LoginRequest
 import com.example.coffeu.data.model.LoginResponse
@@ -34,6 +35,9 @@ class AuthViewModel : ViewModel() {
     // ✅ ESTADO para la lista de favoritos
     val favoriteKitchens = mutableStateListOf<Kitchen>()
 
+    // ✅ ESTADO para el carrito de compras
+    val cartItems = mutableStateListOf<CartItem>()
+
     fun isFavorite(kitchen: Kitchen): Boolean {
         return favoriteKitchens.any { it.id == kitchen.id }
     }
@@ -45,6 +49,31 @@ class AuthViewModel : ViewModel() {
             favoriteKitchens.add(kitchen)
         }
     }
+
+    // ✅ FUNCIÓN para agregar al carrito (manejando cantidades)
+    fun addToCart(kitchen: Kitchen) {
+        val existingItem = cartItems.find { it.kitchen.id == kitchen.id }
+        if (existingItem != null) {
+            existingItem.quantity++
+        } else {
+            cartItems.add(CartItem(kitchen = kitchen))
+        }
+    }
+
+    // ✅ FUNCIÓN para incrementar la cantidad de un item del carrito
+    fun increaseCartItemQuantity(item: CartItem) {
+        item.quantity++
+    }
+
+    // ✅ FUNCIÓN para decrementar la cantidad de un item del carrito
+    fun decreaseCartItemQuantity(item: CartItem) {
+        if (item.quantity > 1) {
+            item.quantity--
+        } else {
+            cartItems.remove(item)
+        }
+    }
+
 
     fun updateErrorMessage(message: String?) {
         errorMessage = message
