@@ -12,6 +12,7 @@ import com.example.coffeu.ui.auth.RegisterScreen
 import com.example.coffeu.ui.password.NewPasswordScreen
 import com.example.coffeu.ui.password.SendCodeScreen
 import com.example.coffeu.ui.password.VerifyCodeScreen
+import com.example.coffeu.ui.products.ProductDetailScreen
 import com.example.coffeu.ui.profilensetting.ChangePasswordScreen
 import com.example.coffeu.ui.profilensetting.EditProfileScreen
 import com.example.coffeu.ui.profilensetting.NotificationsScreen
@@ -37,6 +38,7 @@ object Screen {
     const val SendCode = "send_code_screen"
     const val VerifyCode = "verify_code_screen"
     const val NewPassword = "new_password_screen"
+    const val ProductDetail = "product_detail_screen/{kitchenId}"
 }
 
 @Composable
@@ -113,6 +115,7 @@ fun AppNavigation(
             val username = backStackEntry.arguments?.getString("username") ?: "Error"
             HomeScreen(
                 username = username,
+                authViewModel = authViewModel,
                 onLogout = {
                     authViewModel.logout()
                     navController.navigate(Screen.Login) {
@@ -121,8 +124,26 @@ fun AppNavigation(
                 },
                 onNavigateToProfile = {
                     navController.navigate(Screen.Profile)
+                },
+                onNavigateToProductDetail = { kitchenId ->
+                    navController.navigate("product_detail_screen/$kitchenId")
                 }
             )
+        }
+
+        // --- PRODUCT DETAIL SCREEN ---
+        composable(
+            route = Screen.ProductDetail,
+            arguments = listOf(navArgument("kitchenId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val kitchenId = backStackEntry.arguments?.getInt("kitchenId")
+            val kitchen = authViewModel.kitchenList.find { it.id == kitchenId }
+            if (kitchen != null) {
+                ProductDetailScreen(kitchen = kitchen)
+            } else {
+                // Si no se encuentra el producto, vuelve a la pantalla anterior.
+                navController.popBackStack()
+            }
         }
 
         // --- PROFILE SCREEN ---

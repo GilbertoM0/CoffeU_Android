@@ -39,17 +39,6 @@ import com.example.coffeu.data.model.Kitchen
 // ESTRUCTURA DE DATOS (MODELOS)
 // =================================================================
 data class FoodCategory(val id: Int, val name: String, val icon: Int)
-data class Kitchen(
-    val id: Int,
-    val name: String,
-    val discount: String,
-    val rating: Double,
-    val reviewCount: Int,
-    val price: String,
-    val deliveryTime: String,
-    val distance: String,
-    val image: Int
-)
 
 // --- Simulación de Datos (PLACEHOLDERS) ---
 val categories = listOf(
@@ -71,6 +60,7 @@ fun HomeScreen(
     onSearchClicked: () -> Unit = {},
     onNotificationClicked: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
+    onNavigateToProductDetail: (Int) -> Unit, // Callback para navegar
     authViewModel: AuthViewModel = viewModel() // <--- Obtener ViewModel
 ) {
 
@@ -114,11 +104,6 @@ fun HomeScreen(
                 PromoBanner()
             }
 
-            // 4. Categories Row
-            item {
-                FoodCategoriesRow(categories = categories)
-            }
-
             // 5. Kitchens Near You Header
             item {
                 KitchensHeader()
@@ -155,9 +140,9 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             items(kitchens) { kitchen ->
-                                // Pasa el callback de navegación al hacer clic
                                 KitchenCard(
-                                    kitchen = kitchen
+                                    kitchen = kitchen,
+                                    onCardClick = { onNavigateToProductDetail(kitchen.id) }
                                 )
                             }
                         }
@@ -342,24 +327,7 @@ fun PromoBanner() {
     }
 }
 
-// =================================================================
-// 4. CATEGORIES ROW
-// =================================================================
-@Composable
-fun FoodCategoriesRow(categories: List<FoodCategory>) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        categories.forEach { category ->
-            // Simula que "Pizza" está seleccionado
-            CategoryItem(category = category, isSelected = category.name == "Pizza")
-        }
-    }
-}
+
 
 @Composable
 fun CategoryItem(category: FoodCategory, isSelected: Boolean) {
@@ -427,12 +395,11 @@ fun KitchensHeader(onSeeAllClicked: () -> Unit = {}) {
 // Archivo: HomeScreen.kt (Función KitchenCard)
 
 @Composable
-fun KitchenCard(kitchen: Kitchen) { // ✅ Ya no acepta onCardClick
+fun KitchenCard(kitchen: Kitchen, onCardClick: () -> Unit) { // ✅ Acepta onCardClick
     Card(
         modifier = Modifier
             .width(260.dp)
-            // ✅ CORRECCIÓN: La tarjeta sigue siendo clickable, pero la acción no hace nada.
-            .clickable { /* Acción deshabilitada temporalmente */ },
+            .clickable(onClick = onCardClick), // ✅ Usa el callback aquí
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -611,7 +578,8 @@ fun HomeScreenPreview() {
         HomeScreen(
             username = "Stefanie", // <--- ¡Añadir este parámetro!
             onLogout = {},
-            onNavigateToProfile = {}
+            onNavigateToProfile = {},
+            onNavigateToProductDetail = {} // Añadir callback vacío para el preview
         )
     }
 }
@@ -623,7 +591,8 @@ fun HomeScreenDarkPreview() {
         HomeScreen(
             username = "Stefanie",
             onLogout = {},
-            onNavigateToProfile = {}
+            onNavigateToProfile = {},
+            onNavigateToProductDetail = {} // Añadir callback vacío para el preview
         )
     }
 }
