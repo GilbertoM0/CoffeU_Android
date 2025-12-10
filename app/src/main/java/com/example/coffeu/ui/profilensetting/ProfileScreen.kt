@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -31,7 +32,8 @@ fun ProfileScreen(
     userEmail: String,
     onNavigateToEditProfile: () -> Unit = {},
     onNavigateToNotifications: () -> Unit = {},
-    onNavigateToChangePassword: () -> Unit = {}
+    onNavigateToChangePassword: () -> Unit = {},
+    onLogout: () -> Unit
 ) {
     LazyColumn(
         modifier = Modifier
@@ -83,6 +85,12 @@ fun ProfileScreen(
         item { ProfileMenuItem(icon = Icons.Default.Notifications, text = "Notifications", onClick = onNavigateToNotifications) }
         item { ProfileMenuItem(icon = Icons.Default.Settings, text = "Security") {} }
         item { ProfileMenuItem(icon = Icons.Default.Info, text = "Language") {} }
+
+        // Logout Section
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+            ProfileMenuItem(icon = Icons.AutoMirrored.Filled.Logout, text = "Cerrar Sesión", onClick = onLogout)
+        }
     }
 }
 
@@ -104,21 +112,23 @@ fun ProfileMenuItem(icon: ImageVector, text: String, onClick: () -> Unit) {
             Icon(
                 imageVector = icon,
                 contentDescription = text,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = if (text == "Cerrar Sesión") Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.width(16.dp))
             Text(
                 text = text,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.weight(1f),
-                color = MaterialTheme.colorScheme.onSurface
+                color = if (text == "Cerrar Sesión") Color.Red else MaterialTheme.colorScheme.onSurface
             )
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = "Go to $text",
-                modifier = Modifier.size(16.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            if (text != "Cerrar Sesión") {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = "Go to $text",
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -132,7 +142,8 @@ fun ProfileScreenPreview() {
             userEmail = "wilson@09gail.com",
             onNavigateToEditProfile = {},
             onNavigateToNotifications = {},
-            onNavigateToChangePassword = {}
+            onNavigateToChangePassword = {},
+            onLogout = {}
         )
     }
 }
@@ -146,7 +157,8 @@ fun ProfileScreenDarkPreview() {
             userEmail = "wilson@09gail.com",
             onNavigateToEditProfile = {},
             onNavigateToNotifications = {},
-            onNavigateToChangePassword = {}
+            onNavigateToChangePassword = {},
+            onLogout = {}
         )
     }
 }

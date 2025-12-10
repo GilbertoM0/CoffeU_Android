@@ -17,17 +17,39 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.coffeu.ui.theme.CoffeUTheme
+import com.example.coffeu.ui.viewmodel.NewPasswordUiState
+import com.example.coffeu.ui.viewmodel.NewPasswordViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewPasswordScreen(onBackClicked: () -> Unit, onCreatePasswordClicked: () -> Unit) {
-    var newPassword by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+fun NewPasswordScreen(
+    onBackClicked: () -> Unit,
+    onCreatePasswordClicked: () -> Unit,
+    viewModel: NewPasswordViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var newPasswordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState) {
+        when (val state = uiState) {
+            is NewPasswordUiState.Error -> {
+                snackbarHostState.showSnackbar(state.message)
+                viewModel.resetState()
+            }
+            NewPasswordUiState.Success -> {
+                onCreatePasswordClicked()
+            }
+            else -> {}
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { },
@@ -39,11 +61,11 @@ fun NewPasswordScreen(onBackClicked: () -> Unit, onCreatePasswordClicked: () -> 
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         }
-    ) {
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(it)
+                .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.background)
                 .padding(16.dp)
         ) {
@@ -62,8 +84,8 @@ fun NewPasswordScreen(onBackClicked: () -> Unit, onCreatePasswordClicked: () -> 
 
             Text("New Password", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = Color.Gray)
             OutlinedTextField(
-                value = newPassword,
-                onValueChange = { newPassword = it },
+                value = viewModel.newPassword,
+                onValueChange = { viewModel.newPassword = it },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 visualTransformation = if (newPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -79,8 +101,8 @@ fun NewPasswordScreen(onBackClicked: () -> Unit, onCreatePasswordClicked: () -> 
 
             Text("Confirm New password", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = Color.Gray)
             OutlinedTextField(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
+                value = viewModel.confirmPassword,
+                onValueChange = { viewModel.confirmPassword = it },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -95,14 +117,18 @@ fun NewPasswordScreen(onBackClicked: () -> Unit, onCreatePasswordClicked: () -> 
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
-                onClick = onCreatePasswordClicked,
+                onClick = { viewModel.createNewPassword() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("Create New Password", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                if (uiState == NewPasswordUiState.Loading) {
+                    CircularProgressIndicator(color = Color.White)
+                } else {
+                    Text("Create New Password", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                }
             }
         }
     }

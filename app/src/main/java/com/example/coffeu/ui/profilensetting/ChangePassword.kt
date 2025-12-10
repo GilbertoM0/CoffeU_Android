@@ -23,7 +23,8 @@ import com.example.coffeu.ui.theme.CoffeUTheme
 @Composable
 fun ChangePasswordScreen(
     onBackClicked: () -> Unit,
-    onForgotPasswordClicked: () -> Unit
+    onForgotPasswordClicked: () -> Unit,
+    onCreateNewPasswordClicked: (String) -> Unit
 ) {
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -42,11 +43,11 @@ fun ChangePasswordScreen(
                 )
             )
         }
-    ) {
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(it)
+                .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.background)
                 .padding(16.dp)
         ) {
@@ -96,7 +97,7 @@ fun ChangePasswordScreen(
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
-                onClick = { /* TODO: Create New Password */ },
+                onClick = { onCreateNewPasswordClicked(password) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -113,7 +114,7 @@ fun ChangePasswordScreen(
 @Composable
 fun ChangePasswordScreenPreview() {
     CoffeUTheme {
-        ChangePasswordScreen(onBackClicked = {}, onForgotPasswordClicked = {})
+        ChangePasswordScreen(onBackClicked = {}, onForgotPasswordClicked = {}, onCreateNewPasswordClicked = {})
     }
 }
 
@@ -121,6 +122,6 @@ fun ChangePasswordScreenPreview() {
 @Composable
 fun ChangePasswordScreenDarkPreview() {
     CoffeUTheme(darkTheme = true) {
-        ChangePasswordScreen(onBackClicked = {}, onForgotPasswordClicked = {})
+        ChangePasswordScreen(onBackClicked = {}, onForgotPasswordClicked = {}, onCreateNewPasswordClicked = {})
     }
 }

@@ -1,21 +1,27 @@
 package com.example.coffeu.ui.viewmodel
 
+import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
-import com.example.coffeu.data.RetrofitClient
+import com.example.coffeu.data.api.AuthService
 import com.example.coffeu.data.model.Kitchen
 import com.example.coffeu.data.model.LoginRequest
 import com.example.coffeu.data.model.LoginResponse
 import com.example.coffeu.data.model.RegisterRequest
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
+import javax.inject.Inject
 
-class AuthViewModel : ViewModel() {
-    // --- ESTADOS DE LA UI OBSERVABLES ---
+@HiltViewModel
+class AuthViewModel @Inject constructor(
+    private val authService: AuthService,
+    private val sharedPreferences: SharedPreferences
+) : ViewModel() {
     var loginState by mutableStateOf<LoginResponse?>(null)
         private set
     var registerSuccess by mutableStateOf(false)
@@ -25,28 +31,25 @@ class AuthViewModel : ViewModel() {
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
-    // Para Kitchen la carga de los products
-    // ✅ ESTADO para la lista de cocinas
     var kitchenList by mutableStateOf<List<Kitchen>>(emptyList())
         private set
     var kitchenListError by mutableStateOf<String?>(null)
 
-    // --- CORRECCIÓN: Usamos 'updateErrorMessage' para evitar el choque de firmas (Clash) ---
     fun updateErrorMessage(message: String?) {
         errorMessage = message
     }
 
-    // --- FUNCIÓN DE LOGIN CON RETROFIT ---
     fun attemptLogin(email: String, password: String) {
-        updateErrorMessage(null) // Limpia errores previos de la UI
+        updateErrorMessage(null)
         isLoading = true
         loginState = null
 
         viewModelScope.launch {
             try {
                 val request = LoginRequest(email, password)
-                val response = RetrofitClient.authService.login(request)
+                val response = authService.login(request)
                 loginState = response
+                sharedPreferences.edit().putString("auth_token", response.token).apply()
             } catch (e: HttpException) {
                 errorMessage = "Credenciales inválidas. Verifica tu email y contraseña."
             } catch (e: IOException) {
@@ -59,7 +62,6 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    // --- FUNCIÓN DE REGISTRO CON RETROFIT ---
     fun attemptRegister(
         email: String,
         nombre_usuario: String,
@@ -67,7 +69,7 @@ class AuthViewModel : ViewModel() {
         password: String,
         password2: String
     ) {
-        updateErrorMessage(null) // Limpia errores previos de la UI
+        updateErrorMessage(null)
         isLoading = true
         registerSuccess = false
 
@@ -80,9 +82,8 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val request = RegisterRequest(email, nombre_usuario, telefono_celular, password, password2)
-                RetrofitClient.authService.register(request)
+                authService.register(request)
                 registerSuccess = true
-
             } catch (e: HttpException) {
                 updateErrorMessage("Error de Registro: El usuario o email ya existe.")
             } catch (e: IOException) {
@@ -95,19 +96,15 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-
-
-
-    // ✅ FUNCIÓN para cargar la lista de cocinas
     fun loadKitchens() {
-        if (kitchenList.isNotEmpty()) return // No recargar si ya hay datos
+        if (kitchenList.isNotEmpty()) return
 
         kitchenListError = null
-        isLoading = true // Usamos el indicador global
+        isLoading = true
 
         viewModelScope.launch {
             try {
-                val list = RetrofitClient.authService.getKitchens()
+                val list = authService.getKitchens()
                 kitchenList = list
             } catch (e: Exception) {
                 kitchenListError = "No se pudo cargar la lista de cocinas: ${e.message}"
@@ -117,9 +114,6 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-
-
-    // Función para limpiar el estado de éxito después de navegar o un error
     fun resetRegisterState() {
         registerSuccess = false
         updateErrorMessage(null)
@@ -127,5 +121,6 @@ class AuthViewModel : ViewModel() {
 
     fun logout() {
         loginState = null
+        sharedPreferences.edit().remove("auth_token").apply()
     }
 }

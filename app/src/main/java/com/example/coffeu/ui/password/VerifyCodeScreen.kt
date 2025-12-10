@@ -25,7 +25,7 @@ import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VerifyCodeScreen(onBackClicked: () -> Unit, onContinueClicked: () -> Unit) {
+fun VerifyCodeScreen(onBackClicked: () -> Unit, onContinueClicked: (String) -> Unit) {
     var otpValue by remember { mutableStateOf("") }
     var seconds by remember { mutableStateOf(48) }
 
@@ -83,7 +83,7 @@ fun VerifyCodeScreen(onBackClicked: () -> Unit, onContinueClicked: () -> Unit) {
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
-                onClick = onContinueClicked,
+                onClick = { onContinueClicked(otpValue) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
