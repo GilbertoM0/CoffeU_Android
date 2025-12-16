@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -18,6 +19,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +35,7 @@ import coil.compose.AsyncImage
 import com.example.coffeu.data.model.Kitchen
 import com.example.coffeu.ui.theme.CoffeUTheme
 import com.example.coffeu.ui.viewmodel.AuthViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,6 +55,8 @@ fun AllProductsScreen(
     val error = authViewModel.kitchenListError
 
     var searchText by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val filteredKitchens by remember(searchText, allKitchens) {
         derivedStateOf {
@@ -66,6 +71,7 @@ fun AllProductsScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Search", fontWeight = FontWeight.Bold) },
@@ -120,9 +126,18 @@ fun AllProductsScreen(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         items(filteredKitchens) { kitchen ->
-                            ProductRowItem(kitchen = kitchen, onProductClicked = {
-                                onProductClicked(kitchen.id)
-                            })
+                            ProductRowItem(
+                                kitchen = kitchen,
+                                onProductClicked = {
+                                    onProductClicked(kitchen.id)
+                                },
+                                onAddToCartClicked = {
+                                    authViewModel.addToCart(kitchen)
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar("${kitchen.name} ha sido añadido al carrito")
+                                    }
+                                }
+                            )
                         }
                     }
                 }
@@ -132,7 +147,11 @@ fun AllProductsScreen(
 }
 
 @Composable
-fun ProductRowItem(kitchen: Kitchen, onProductClicked: () -> Unit) {
+fun ProductRowItem(
+    kitchen: Kitchen,
+    onProductClicked: () -> Unit,
+    onAddToCartClicked: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -171,13 +190,14 @@ fun ProductRowItem(kitchen: Kitchen, onProductClicked: () -> Unit) {
 
         // Add Button
         Button(
-            onClick = { /* TODO: Add to cart */ },
-            shape = RoundedCornerShape(12.dp),
+            onClick = onAddToCartClicked,
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.height(50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Icon(Icons.Default.Add, contentDescription = "Add to cart", tint = MaterialTheme.colorScheme.onPrimary)
+            Icon(Icons.Default.ShoppingCart, contentDescription = null)
             Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
-            Text("Add", color = MaterialTheme.colorScheme.onPrimary)
+            Text("Agregar al carrito")
         }
     }
 }
