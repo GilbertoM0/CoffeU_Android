@@ -12,6 +12,7 @@ import com.example.coffeu.data.model.Kitchen
 import com.example.coffeu.data.model.LoginRequest
 import com.example.coffeu.data.model.LoginResponse
 import com.example.coffeu.data.model.RegisterRequest
+import com.example.coffeu.data.model.VerifyCodeRequest
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
@@ -21,6 +22,8 @@ class AuthViewModel : ViewModel() {
     var loginState by mutableStateOf<LoginResponse?>(null)
         private set
     var registerSuccess by mutableStateOf(false)
+        private set
+    var verifyCodeSuccess by mutableStateOf(false)
         private set
     var isLoading by mutableStateOf(false)
         private set
@@ -138,6 +141,36 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    // --- FUNCIÓN DE VERIFICACIÓN DE CÓDIGO ---
+    fun attemptVerifyCode(email: String, otp: String) {
+        updateErrorMessage(null)
+        isLoading = true
+        verifyCodeSuccess = false
+
+        if (otp.length != 6) {
+            updateErrorMessage("El código debe tener 6 dígitos.")
+            isLoading = false
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                val request = VerifyCodeRequest(email, otp)
+                RetrofitClient.authService.verifyCode(request)
+                verifyCodeSuccess = true
+            } catch (e: HttpException) {
+                updateErrorMessage("Código de verificación incorrecto o expirado.")
+            } catch (e: IOException) {
+                updateErrorMessage("Error de conexión al verificar el código.")
+            } catch (e: Exception) {
+                updateErrorMessage("Ocurrió un error inesperado al verificar.")
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+
     // ✅ FUNCIÓN para cargar la lista de cocinas
     fun loadKitchens() {
         if (kitchenList.isNotEmpty()) return // No recargar si ya hay datos
@@ -157,9 +190,13 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    // Función para limpiar el estado de éxito después de navegar o un error
     fun resetRegisterState() {
         registerSuccess = false
+        updateErrorMessage(null)
+    }
+
+    fun resetVerifyCodeState() {
+        verifyCodeSuccess = false
         updateErrorMessage(null)
     }
 

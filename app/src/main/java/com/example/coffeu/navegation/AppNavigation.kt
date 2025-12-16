@@ -281,8 +281,9 @@ fun AppNavigation(
         // --- VERIFY CODE SCREEN ---
         composable(Screen.VerifyCode) {
             VerifyCodeScreen(
+                authViewModel = authViewModel,
                 onBackClicked = { navController.popBackStack() },
-                onContinueClicked = { navController.navigate(Screen.NewPassword) }
+                onVerificationSuccess = { navController.navigate(Screen.NewPassword) }
             )
         }
 
