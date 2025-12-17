@@ -117,9 +117,7 @@ fun AppNavigation(
             RegisterScreen(
                 authViewModel = authViewModel,
                 onRegistrationSuccess = {
-                    navController.navigate(Screen.VerifyCode) {
-                        popUpTo(Screen.Register) { inclusive = true }
-                    }
+                    navController.navigate(Screen.VerifyCode)
                 },
                 onNavigateToLogin = {
                     navController.navigate(Screen.Login)
@@ -283,7 +281,11 @@ fun AppNavigation(
             VerifyCodeScreen(
                 authViewModel = authViewModel,
                 onBackClicked = { navController.popBackStack() },
-                onVerificationSuccess = { navController.navigate(Screen.NewPassword) }
+                onVerificationSuccess = { 
+                    navController.navigate(Screen.Login) {
+                        popUpTo(Screen.Register) { inclusive = true }
+                    }
+                 }
             )
         }
 
