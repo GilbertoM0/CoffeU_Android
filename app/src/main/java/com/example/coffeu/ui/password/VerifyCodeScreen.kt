@@ -9,6 +9,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,19 +21,40 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.coffeu.ui.theme.CoffeUTheme
+import com.example.coffeu.ui.viewmodel.AuthViewModel
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VerifyCodeScreen(onBackClicked: () -> Unit, onContinueClicked: () -> Unit) {
+fun VerifyCodeScreen(
+    onBackClicked: () -> Unit,
+    onVerificationSuccess: () -> Unit,
+    authViewModel: AuthViewModel = viewModel()
+) {
+    var email by remember { mutableStateOf("") }
     var otpValue by remember { mutableStateOf("") }
-    var seconds by remember { mutableStateOf(48) }
+    var seconds by remember { mutableStateOf(300) } // Changed to 5 minutes
 
+    // ViewModel states
+    val isLoading = authViewModel.isLoading
+    val errorMessage = authViewModel.errorMessage
+    val verifySuccess = authViewModel.verifyCodeSuccess
+
+    // Timer for resending code
     LaunchedEffect(key1 = seconds) {
         while (seconds > 0) {
             delay(1000L)
             seconds--
+        }
+    }
+
+    // React to successful verification
+    LaunchedEffect(verifySuccess) {
+        if (verifySuccess) {
+            authViewModel.resetVerifyCodeState()
+            onVerificationSuccess()
         }
     }
 
@@ -48,11 +70,11 @@ fun VerifyCodeScreen(onBackClicked: () -> Unit, onContinueClicked: () -> Unit) {
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         }
-    ) {
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(it)
+                .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.background)
                 .padding(16.dp)
         ) {
@@ -63,34 +85,69 @@ fun VerifyCodeScreen(onBackClicked: () -> Unit, onContinueClicked: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Please enter the code we just sent to your number (907) 555-0101",
+                text = "Please enter your email and the code we just sent you.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.Gray
             )
             Spacer(modifier = Modifier.height(32.dp))
 
+            // Email Field
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Correo Electrónico") },
+                leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Email") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // OTP Field
             OtpTextField(otpText = otpValue, onOtpTextChange = { value, _ -> otpValue = value })
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Resend code text
+            val minutes = seconds / 60
+            val remainingSeconds = seconds % 60
             Text(
-                text = "Resend code in 00:${String.format("%02d", seconds)}",
+                text = "Resend code in ${String.format("%02d:%02d", minutes, remainingSeconds)}",
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
+            
+            // Error Message
+            if (errorMessage != null && !isLoading) {
+                Text(
+                    text = errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 16.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 
+            // Continue Button
             Button(
-                onClick = onContinueClicked,
+                onClick = {
+                    authViewModel.attemptVerifyCode(email, otpValue)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
+                enabled = !isLoading,
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("Continue", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                if (isLoading) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
+                } else {
+                    Text("Continue", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                }
             }
         }
     }
@@ -143,6 +200,6 @@ private fun OtpChar(char: Char?, hasFocus: Boolean) {
 @Composable
 fun VerifyCodeScreenPreview() {
     CoffeUTheme {
-        VerifyCodeScreen(onBackClicked = {}, onContinueClicked = {})
+        VerifyCodeScreen(onBackClicked = {}, onVerificationSuccess = {})
     }
 }

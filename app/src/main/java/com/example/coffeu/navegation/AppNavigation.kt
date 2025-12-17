@@ -15,6 +15,7 @@ import com.example.coffeu.ui.auth.RegisterScreen
 import com.example.coffeu.ui.password.NewPasswordScreen
 import com.example.coffeu.ui.password.SendCodeScreen
 import com.example.coffeu.ui.password.VerifyCodeScreen
+import com.example.coffeu.ui.products.AddProductScreen
 import com.example.coffeu.ui.products.AllProductsScreen
 import com.example.coffeu.ui.products.FavProductsScreen
 import com.example.coffeu.ui.products.ProductDetailScreen
@@ -48,6 +49,7 @@ object Screen {
     const val AllProducts = "all_products_screen"
     const val FavoriteProducts = "favorite_products_screen"
     const val MyOrder = "my_order_screen"
+    const val AddProduct = "add_product_screen"
 }
 
 @Composable
@@ -117,9 +119,7 @@ fun AppNavigation(
             RegisterScreen(
                 authViewModel = authViewModel,
                 onRegistrationSuccess = {
-                    navController.navigate(Screen.Login) {
-                        popUpTo(Screen.Register) { inclusive = true }
-                    }
+                    navController.navigate(Screen.VerifyCode)
                 },
                 onNavigateToLogin = {
                     navController.navigate(Screen.Login)
@@ -166,6 +166,9 @@ fun AppNavigation(
                 },
                 onNavigateToAllProducts = {
                     navController.navigate(Screen.AllProducts)
+                },
+                onNavigateToAddProduct = { // Added this
+                    navController.navigate(Screen.AddProduct)
                 }
             )
         }
@@ -281,8 +284,13 @@ fun AppNavigation(
         // --- VERIFY CODE SCREEN ---
         composable(Screen.VerifyCode) {
             VerifyCodeScreen(
+                authViewModel = authViewModel,
                 onBackClicked = { navController.popBackStack() },
-                onContinueClicked = { navController.navigate(Screen.NewPassword) }
+                onVerificationSuccess = { 
+                    navController.navigate(Screen.Login) {
+                        popUpTo(Screen.Register) { inclusive = true }
+                    }
+                 }
             )
         }
 
@@ -291,6 +299,15 @@ fun AppNavigation(
             NewPasswordScreen(
                 onBackClicked = { navController.popBackStack() },
                 onCreatePasswordClicked = { /* TODO */ }
+            )
+        }
+
+        // --- ADD PRODUCT SCREEN ---
+        composable(Screen.AddProduct) {
+            AddProductScreen(
+                authViewModel = authViewModel,
+                onProductAdded = { navController.popBackStack() },
+                onBackClicked = { navController.popBackStack() }
             )
         }
     }
