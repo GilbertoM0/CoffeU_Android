@@ -117,7 +117,7 @@ fun AppNavigation(
             RegisterScreen(
                 authViewModel = authViewModel,
                 onRegistrationSuccess = {
-                    navController.navigate(Screen.Login) {
+                    navController.navigate(Screen.VerifyCode) {
                         popUpTo(Screen.Register) { inclusive = true }
                     }
                 },
