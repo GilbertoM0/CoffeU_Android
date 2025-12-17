@@ -1,5 +1,6 @@
 package com.example.coffeu.data.api
 
+import com.example.coffeu.data.model.AddProductRequest
 import com.example.coffeu.data.model.Kitchen
 import com.example.coffeu.data.model.LoginRequest
 import com.example.coffeu.data.model.LoginResponse
@@ -32,4 +33,8 @@ interface AuthService {
     // Obtener detalles del producto por ID
     @GET("products/{productId}/")
     suspend fun getProductDetail(@Path("productId") productId: Int): Product
+
+    // Añadir un nuevo producto
+    @POST("products/")
+    suspend fun addProduct(@Body request: AddProductRequest): Kitchen
 }

@@ -45,16 +45,6 @@ import kotlinx.coroutines.launch
 // =================================================================
 data class FoodCategory(val id: Int, val name: String, val icon: Int)
 
-// --- Simulación de Datos (PLACEHOLDERS) ---
-/*val categories = listOf(
-    FoodCategory(1, "Pizza", R.drawable.img),
-    FoodCategory(2, "Burgers", R.drawable.img),
-    FoodCategory(3, "Cookies", R.drawable.img),
-    FoodCategory(4, "Pasta", R.drawable.img),
-    FoodCategory(5, "Sushi", R.drawable.img),
-)*/
-
-
 // =================================================================
 // COMPONENTE PRINCIPAL DE LA PANTALLA
 // =================================================================
@@ -65,11 +55,12 @@ fun HomeScreen(
     onSearchClicked: () -> Unit = {},
     onNotificationClicked: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
-    onNavigateToFavorites: () -> Unit, // Callback para navegar a favoritos
+    onNavigateToFavorites: () -> Unit,
     onNavigateToMyOrder: () -> Unit,
-    onNavigateToProductDetail: (Int) -> Unit, // Callback para navegar
-    onNavigateToAllProducts: () -> Unit, // Callback para ver todos
-    authViewModel: AuthViewModel = viewModel() // <--- Obtener ViewModel
+    onNavigateToProductDetail: (Int) -> Unit,
+    onNavigateToAllProducts: () -> Unit,
+    onNavigateToAddProduct: () -> Unit, // Added this
+    authViewModel: AuthViewModel = viewModel()
 ) {
 
     // 1. Cargar datos al inicio
@@ -104,6 +95,11 @@ fun HomeScreen(
                 onFavoritesClicked = onNavigateToFavorites,
                 onMyOrderClicked = onNavigateToMyOrder
             )
+        },
+        floatingActionButton = { // Added Floating Action Button
+            FloatingActionButton(onClick = onNavigateToAddProduct) {
+                Icon(Icons.Default.Add, contentDescription = "Add Product")
+            }
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
@@ -654,7 +650,8 @@ fun HomeScreenPreview() {
             onNavigateToProductDetail = {},
             onNavigateToAllProducts = {},
             onNavigateToFavorites = {},
-            onNavigateToMyOrder = {}
+            onNavigateToMyOrder = {},
+            onNavigateToAddProduct = {} // Added for preview
         )
     }
 }
@@ -670,7 +667,8 @@ fun HomeScreenDarkPreview() {
             onNavigateToProductDetail = {},
             onNavigateToAllProducts = {},
             onNavigateToFavorites = {},
-            onNavigateToMyOrder = {}
+            onNavigateToMyOrder = {},
+            onNavigateToAddProduct = {} // Added for preview
         )
     }
 }

@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.coffeu.data.RetrofitClient
+import com.example.coffeu.data.model.AddProductRequest
 import com.example.coffeu.data.model.CartItem
 import com.example.coffeu.data.model.Kitchen
 import com.example.coffeu.data.model.LoginRequest
@@ -24,6 +25,8 @@ class AuthViewModel : ViewModel() {
     var registerSuccess by mutableStateOf(false)
         private set
     var verifyCodeSuccess by mutableStateOf(false)
+        private set
+    var addProductSuccess by mutableStateOf(false)
         private set
     var isLoading by mutableStateOf(false)
         private set
@@ -179,6 +182,58 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    // --- FUNCIÓN DE AÑADIR PRODUCTO ---
+    fun attemptAddProduct(
+        name: String, description: String, stock: String, imageUrl: String, price: String,
+        rating: String, reviewCount: String, deliveryTime: String, distance: String, discount: String
+    ) {
+        updateErrorMessage(null)
+
+        val stockInt = stock.toIntOrNull()
+        val ratingDouble = rating.toDoubleOrNull()
+        val reviewCountInt = reviewCount.toIntOrNull()
+
+        if (name.isBlank() || description.isBlank() || stock.isBlank() || imageUrl.isBlank() || price.isBlank() || rating.isBlank() || reviewCount.isBlank() || deliveryTime.isBlank() || distance.isBlank() || discount.isBlank()) {
+            updateErrorMessage("Todos los campos son obligatorios.")
+            return
+        }
+
+        if (stockInt == null || ratingDouble == null || reviewCountInt == null) {
+            updateErrorMessage("Stock, Rating y Review Count deben ser números válidos.")
+            return
+        }
+
+        isLoading = true
+        addProductSuccess = false
+
+        viewModelScope.launch {
+            try {
+                val request = AddProductRequest(
+                    name = name,
+                    description = description,
+                    stock = stockInt,
+                    imageUrl = imageUrl,
+                    price = price,
+                    rating = ratingDouble,
+                    reviewCount = reviewCountInt,
+                    deliveryTime = deliveryTime,
+                    distance = distance,
+                    discount = discount
+                )
+                val newProduct = RetrofitClient.authService.addProduct(request)
+                kitchenList = kitchenList + newProduct // Add the new product to the existing list
+                addProductSuccess = true
+            } catch (e: HttpException) {
+                updateErrorMessage("Error al añadir el producto: ${e.message()}")
+            } catch (e: IOException) {
+                updateErrorMessage("Error de conexión. No se pudo añadir el producto.")
+            } catch (e: Exception) {
+                updateErrorMessage("Ocurrió un error inesperado: ${e.message}")
+            } finally {
+                isLoading = false
+            }
+        }
+    }
 
     // ✅ FUNCIÓN para cargar la lista de cocinas
     fun loadKitchens() {
@@ -206,6 +261,11 @@ class AuthViewModel : ViewModel() {
 
     fun resetVerifyCodeState() {
         verifyCodeSuccess = false
+        updateErrorMessage(null)
+    }
+
+    fun resetAddProductState() {
+        addProductSuccess = false
         updateErrorMessage(null)
     }
 
