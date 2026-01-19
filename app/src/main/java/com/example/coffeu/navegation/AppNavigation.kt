@@ -66,8 +66,8 @@ fun AppNavigation(
     val username = remember { sharedPreferences.getString("username", "") ?: "" }
 
     val startDestination = if (isLoggedIn) {
-        Screen.Splash
-        //Screen.Home.replace("{username}", username)
+        //Screen.Splash
+        Screen.Home.replace("{username}", username)
     } else {
         Screen.Splash
     }
