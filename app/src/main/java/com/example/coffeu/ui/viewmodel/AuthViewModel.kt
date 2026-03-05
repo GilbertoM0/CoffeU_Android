@@ -185,7 +185,7 @@ class AuthViewModel : ViewModel() {
     // --- FUNCIÓN DE AÑADIR PRODUCTO ---
     fun attemptAddProduct(
         name: String, description: String, stock: String, imageUrl: String, price: String,
-        rating: String, reviewCount: String, deliveryTime: String, distance: String, discount: String
+        rating: String, reviewCount: String, category: String, size: String, deliveryTime: String, distance: String, discount: String
     ) {
         updateErrorMessage(null)
 
@@ -193,7 +193,7 @@ class AuthViewModel : ViewModel() {
         val ratingDouble = rating.toDoubleOrNull()
         val reviewCountInt = reviewCount.toIntOrNull()
 
-        if (name.isBlank() || description.isBlank() || stock.isBlank() || imageUrl.isBlank() || price.isBlank() || rating.isBlank() || reviewCount.isBlank() || deliveryTime.isBlank() || distance.isBlank() || discount.isBlank()) {
+        if (name.isBlank() || description.isBlank() || stock.isBlank() || imageUrl.isBlank() || price.isBlank() || rating.isBlank() || reviewCount.isBlank() || category.isBlank() || size.isBlank() || deliveryTime.isBlank() || distance.isBlank() || discount.isBlank()) {
             updateErrorMessage("Todos los campos son obligatorios.")
             return
         }
@@ -216,6 +216,8 @@ class AuthViewModel : ViewModel() {
                     price = price,
                     rating = ratingDouble,
                     reviewCount = reviewCountInt,
+                    category = category,
+                    size = size,
                     deliveryTime = deliveryTime,
                     distance = distance,
                     discount = discount

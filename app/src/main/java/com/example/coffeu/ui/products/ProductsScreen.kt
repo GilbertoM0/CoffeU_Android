@@ -72,14 +72,14 @@ fun ProductDetailScreen(
                             verticalAlignment = Alignment.Top
                         ) {
                             Text(
-                                text = kitchen.name,
+                                text = kitchen.name ?: "",
                                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                                 modifier = Modifier.weight(1f),
                                 color = MaterialTheme.colorScheme.onBackground
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
-                                text = "$${kitchen.price}",
+                                text = "$${kitchen.price ?: "0.00"}",
                                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                             )
                         }
@@ -88,9 +88,9 @@ fun ProductDetailScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             InfoChip("Envio Gratis")
-                            InfoChip(kitchen.deliveryTime)
+                            InfoChip(kitchen.deliveryTime ?: "")
                             InfoChip(
-                                text = kitchen.rating.toString(),
+                                text = (kitchen.rating ?: 0.0).toString(),
                                 icon = { Icon(Icons.Default.Star, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                             )
                         }
@@ -102,7 +102,7 @@ fun ProductDetailScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = kitchen.description,
+                            text = kitchen.description ?: "",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         )
@@ -136,9 +136,9 @@ fun ProductDetailScreen(
                             authViewModel.toggleFavorite(kitchen)
                             scope.launch {
                                 val message = if (authViewModel.isFavorite(kitchen)) {
-                                    "${kitchen.name} ha sido añadido a favoritos"
+                                    "${kitchen.name ?: "Producto"} ha sido añadido a favoritos"
                                 } else {
-                                    "${kitchen.name} ha sido eliminado de favoritos"
+                                    "${kitchen.name ?: "Producto"} ha sido eliminado de favoritos"
                                 }
                                 snackbarHostState.showSnackbar(message)
                             }
@@ -193,7 +193,7 @@ fun ProductDetailScreen(
                     onClick = {
                         authViewModel.addToCart(kitchen)
                         scope.launch {
-                            snackbarHostState.showSnackbar("${kitchen.name} ha sido añadido al carrito")
+                            snackbarHostState.showSnackbar("${kitchen.name ?: "Producto"} ha sido añadido al carrito")
                         }
                     },
                     shape = RoundedCornerShape(16.dp),
@@ -238,6 +238,8 @@ fun ProductDetailScreenPreview() {
             price = "20.00",
             rating = 4.5,
             reviewCount = 120,
+            category = "tablas",
+            size = "Mediano",
             deliveryTime = "20-30 min",
             distance = "1.2km",
             discount = "10%"
@@ -259,6 +261,8 @@ fun ProductDetailScreenDarkPreview() {
             price = "20.00",
             rating = 4.5,
             reviewCount = 120,
+            category = "tablas",
+            size = "Mediano",
             deliveryTime = "20-30 min",
             distance = "1.2km",
             discount = "10%"

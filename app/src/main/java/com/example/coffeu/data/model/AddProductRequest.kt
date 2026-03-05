@@ -17,6 +17,10 @@ data class AddProductRequest(
     val rating: Double,
     @SerializedName("reviewCount")
     val reviewCount: Int,
+    @SerializedName("category")
+    val category: String,
+    @SerializedName("size")
+    val size: String,
     @SerializedName("deliveryTime")
     val deliveryTime: String,
     @SerializedName("distance")

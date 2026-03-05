@@ -94,7 +94,7 @@ fun FavProductsScreen(
                             onAddToCartClicked = {
                                 authViewModel.addToCart(kitchen)
                                 scope.launch {
-                                    snackbarHostState.showSnackbar("${kitchen.name} ha sido añadido al carrito")
+                                    snackbarHostState.showSnackbar("${kitchen.name ?: "Producto"} ha sido añadido al carrito")
                                 }
                             }
                         )

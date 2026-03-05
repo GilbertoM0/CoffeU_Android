@@ -34,6 +34,8 @@ fun AddProductScreen(
     var price by remember { mutableStateOf("") }
     var rating by remember { mutableStateOf("") }
     var reviewCount by remember { mutableStateOf("") }
+    var category by remember { mutableStateOf("") }
+    var size by remember { mutableStateOf("") }
     var deliveryTime by remember { mutableStateOf("") }
     var distance by remember { mutableStateOf("") }
     var discount by remember { mutableStateOf("") }
@@ -42,7 +44,7 @@ fun AddProductScreen(
     val errorMessage = authViewModel.errorMessage
     val addProductSuccess = authViewModel.addProductSuccess
 
-    val isFormValid by remember(name, description, stock, imageUrl, price, rating, reviewCount, deliveryTime, distance, discount) {
+    val isFormValid by remember(name, description, stock, imageUrl, price, rating, reviewCount, category, size, deliveryTime, distance, discount) {
         derivedStateOf {
             name.isNotBlank() &&
             description.isNotBlank() &&
@@ -51,6 +53,8 @@ fun AddProductScreen(
             price.isNotBlank() &&
             rating.isNotBlank() &&
             reviewCount.isNotBlank() &&
+            category.isNotBlank() &&
+            size.isNotBlank() &&
             deliveryTime.isNotBlank() &&
             distance.isNotBlank() &&
             discount.isNotBlank()
@@ -97,6 +101,8 @@ fun AddProductScreen(
             item { TextField(label = "Price", value = price, onValueChange = { price = it }, keyboardType = KeyboardType.Decimal) }
             item { TextField(label = "Rating", value = rating, onValueChange = { rating = it }, keyboardType = KeyboardType.Decimal) }
             item { TextField(label = "Review Count", value = reviewCount, onValueChange = { reviewCount = it }, keyboardType = KeyboardType.Number) }
+            item { TextField(label = "Category", value = category, onValueChange = { category = it }) }
+            item { TextField(label = "Size", value = size, onValueChange = { size = it }) }
             item { TextField(label = "Delivery Time", value = deliveryTime, onValueChange = { deliveryTime = it }) }
             item { TextField(label = "Distance", value = distance, onValueChange = { distance = it }) }
             item { TextField(label = "Discount", value = discount, onValueChange = { discount = it }) }
@@ -125,6 +131,8 @@ fun AddProductScreen(
                             price = price,
                             rating = rating,
                             reviewCount = reviewCount,
+                            category = category,
+                            size = size,
                             deliveryTime = deliveryTime,
                             distance = distance,
                             discount = discount
