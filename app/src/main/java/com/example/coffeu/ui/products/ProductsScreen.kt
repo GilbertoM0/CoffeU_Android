@@ -238,6 +238,8 @@ fun ProductDetailScreenPreview() {
             price = "20.00",
             rating = 4.5,
             reviewCount = 120,
+            category = "tablas",
+            size = "Mediano",
             deliveryTime = "20-30 min",
             distance = "1.2km",
             discount = "10%"
@@ -259,6 +261,8 @@ fun ProductDetailScreenDarkPreview() {
             price = "20.00",
             rating = 4.5,
             reviewCount = 120,
+            category = "tablas",
+            size = "Mediano",
             deliveryTime = "20-30 min",
             distance = "1.2km",
             discount = "10%"

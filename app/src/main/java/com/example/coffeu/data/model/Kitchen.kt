@@ -7,14 +7,13 @@ data class Kitchen(
     val name: String,
     val description: String,
     val stock: Int,
-    val imageUrl: String? = null, // Usamos String? porque el campo de Django es nullable
-
+    val imageUrl: String? = null,
     val price: String,
     val rating: Double,
-    val reviewCount: Int,
+    val reviewCount: Int, // Nueva propiedad
+    val category: String, // Nueva propiedad
+    val size: String,     // Nueva propiedad
     val deliveryTime: String,
     val distance: String,
     val discount: String
-    // Nota: Si alguno de estos campos puede ser NULL desde Django,
-    // añade '?' al tipo (ej: val distance: String?)
 )

@@ -34,20 +34,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import com.example.coffeu.R // Necesitas tener R.drawable.xxx
+import com.example.coffeu.R
 import com.example.coffeu.data.model.Kitchen
 import com.example.coffeu.ui.theme.CoffeUTheme
 import com.example.coffeu.ui.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 
-// =================================================================
-// ESTRUCTURA DE DATOS (MODELOS)
-// =================================================================
 data class FoodCategory(val id: Int, val name: String, val icon: Int)
 
-// =================================================================
-// COMPONENTE PRINCIPAL DE LA PANTALLA
-// =================================================================
 @Composable
 fun HomeScreen(
     username: String,
@@ -59,21 +53,18 @@ fun HomeScreen(
     onNavigateToMyOrder: () -> Unit,
     onNavigateToProductDetail: (Int) -> Unit,
     onNavigateToAllProducts: () -> Unit,
-    onNavigateToAddProduct: () -> Unit, // Added this
+    onNavigateToAddProduct: () -> Unit,
     authViewModel: AuthViewModel = viewModel()
 ) {
 
-    // 1. Cargar datos al inicio
     LaunchedEffect(Unit) {
         authViewModel.loadKitchens()
     }
 
-    // 2. Observar el estado del ViewModel
-    val kitchens = authViewModel.kitchenList // Lista real (observable)
+    val kitchens = authViewModel.kitchenList
     val isLoadingList = authViewModel.isLoading
     val error = authViewModel.kitchenListError
 
-    // ✅ Seleccionar 20 cocinas aleatorias y recordarlas en dos listas
     val shuffledKitchens = remember(kitchens) {
         kitchens.shuffled()
     }
@@ -96,7 +87,7 @@ fun HomeScreen(
                 onMyOrderClicked = onNavigateToMyOrder
             )
         },
-        floatingActionButton = { // Added Floating Action Button
+        floatingActionButton = {
             FloatingActionButton(onClick = onNavigateToAddProduct) {
                 Icon(Icons.Default.Add, contentDescription = "Add Product")
             }
@@ -108,7 +99,6 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // 1. Header (Perfil y Ubicación)
             item {
                 HomeHeader(
                     userName = username,
@@ -117,30 +107,20 @@ fun HomeScreen(
                 )
             }
 
-            // 2. Search Bar
             item {
                 SearchBar(onClick = onSearchClicked)
             }
 
-            // 3. Promo Banner (30% OFF)
             item {
                 PromoBanner()
             }
 
-            // 4. Categories Row
-           /* item {
-                FoodCategoriesRow(categories = categories)
-            }*/
-
-            // 5. Kitchens Near You Header
             item {
                 KitchensHeader(title = "Cocina cerca de ti", onSeeAllClicked = onNavigateToAllProducts)
             }
 
-            // 6. Kitchens Near You Row (Mostrar datos dinámicos)
             item {
                 when {
-                    // Muestra carga si está ocupado y la lista está vacía (primera carga)
                     isLoadingList && kitchens.isEmpty() -> {
                         Box(
                             modifier = Modifier
@@ -151,7 +131,6 @@ fun HomeScreen(
                             CircularProgressIndicator()
                         }
                     }
-                    // Muestra error si falló la carga
                     error != null -> {
                         Text(
                             text = "Error de carga: $error",
@@ -159,7 +138,6 @@ fun HomeScreen(
                             modifier = Modifier.padding(16.dp)
                         )
                     }
-                    // Muestra la lista si hay datos
                     else -> {
                         LazyRow(
                             contentPadding = PaddingValues(
@@ -168,7 +146,8 @@ fun HomeScreen(
                                 bottom = 16.dp
                             ),
                             horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {                            items(randomKitchens) { kitchen -> // ✅ Usar la lista aleatoria
+                        ) {
+                            items(randomKitchens) { kitchen ->
                                 KitchenCard(
                                     kitchen = kitchen,
                                     authViewModel = authViewModel,
@@ -186,7 +165,6 @@ fun HomeScreen(
                 }
             }
 
-            // 7. Second Carousel
             if (secondRandomKitchens.isNotEmpty()) {
                 item {
                     KitchensHeader(title = "Más para descubrir", onSeeAllClicked = onNavigateToAllProducts)
@@ -220,9 +198,6 @@ fun HomeScreen(
     }
 }
 
-// =================================================================
-// 1. HOME HEADER (Perfil y Ubicación)
-// =================================================================
 @Composable
 fun HomeHeader(
     userName: String,
@@ -244,7 +219,6 @@ fun HomeHeader(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Foto de Perfil y Ubicación
         Row(verticalAlignment = Alignment.CenterVertically) {
             AsyncImage(
                 model = imageUri ?: R.drawable.home_perfil,
@@ -281,7 +255,6 @@ fun HomeHeader(
             }
         }
 
-        // Icono de Notificación
         BadgedBox(
             badge = {
                 Badge(
@@ -304,9 +277,6 @@ fun HomeHeader(
     }
 }
 
-// =================================================================
-// 2. SEARCH BAR
-// =================================================================
 @Composable
 fun SearchBar(onClick: () -> Unit) {
     Row(
@@ -342,9 +312,6 @@ fun SearchBar(onClick: () -> Unit) {
     }
 }
 
-// =================================================================
-// 3. PROMO BANNER
-// =================================================================
 @Composable
 fun PromoBanner() {
     Box(
@@ -379,7 +346,7 @@ fun PromoBanner() {
             )
             Spacer(modifier = Modifier.height(16.dp))
             Button(
-                onClick = { /* Acción de pedido */ },
+                onClick = { },
                 shape = RoundedCornerShape(20.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary)
             ) {
@@ -393,56 +360,6 @@ fun PromoBanner() {
     }
 }
 
-// =================================================================
-// 4. CATEGORIES ROW
-// =================================================================
-@Composable
-fun FoodCategoriesRow(categories: List<FoodCategory>) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        categories.forEach { category ->
-            CategoryItem(category = category, isSelected = category.name == "Pizza")
-        }
-    }
-}
-
-@Composable
-fun CategoryItem(category: FoodCategory, isSelected: Boolean) {
-    val containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
-    val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(24.dp))
-            .background(containerColor)
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable { /* Acción de selección */ },
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(24.dp)
-                .clip(CircleShape)
-                .background(contentColor.copy(alpha = 0.2f))
-        ) {}
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = category.name,
-            color = contentColor,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 16.sp
-        )
-    }
-}
-
-// =================================================================
-// 5. KITCHENS HEADER
-// =================================================================
 @Composable
 fun KitchensHeader(title: String, onSeeAllClicked: () -> Unit = {}) {
     Row(
@@ -468,9 +385,6 @@ fun KitchensHeader(title: String, onSeeAllClicked: () -> Unit = {}) {
     }
 }
 
-// =================================================================
-// 6. KITCHEN CARD
-// =================================================================
 @Composable
 fun KitchenCard(
     kitchen: Kitchen,
@@ -550,7 +464,7 @@ fun KitchenCard(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "${kitchen.rating} (${kitchen.reviewCount} Reviews)",
+                            text = "${kitchen.rating} - ${kitchen.category}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -565,7 +479,7 @@ fun KitchenCard(
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "${kitchen.deliveryTime}",
+                        text = "${kitchen.deliveryTime} • ${kitchen.size}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -581,9 +495,6 @@ fun KitchenCard(
     }
 }
 
-// =================================================================
-// 7. BOTTOM NAVIGATION BAR
-// =================================================================
 @Composable
 fun HomeBottomBar(onProfileClicked: () -> Unit, onFavoritesClicked: () -> Unit, onMyOrderClicked: () -> Unit) {
     NavigationBar(
@@ -636,9 +547,6 @@ fun HomeBottomBar(onProfileClicked: () -> Unit, onFavoritesClicked: () -> Unit, 
 }
 
 
-// =================================================================
-// PREVIEW
-// =================================================================
 @Preview(showBackground = true, name = "Light Mode")
 @Composable
 fun HomeScreenPreview() {
@@ -651,24 +559,7 @@ fun HomeScreenPreview() {
             onNavigateToAllProducts = {},
             onNavigateToFavorites = {},
             onNavigateToMyOrder = {},
-            onNavigateToAddProduct = {} // Added for preview
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Dark Mode")
-@Composable
-fun HomeScreenDarkPreview() {
-    CoffeUTheme(darkTheme = true) {
-        HomeScreen(
-            username = "Stefanie",
-            onLogout = {},
-            onNavigateToProfile = {},
-            onNavigateToProductDetail = {},
-            onNavigateToAllProducts = {},
-            onNavigateToFavorites = {},
-            onNavigateToMyOrder = {},
-            onNavigateToAddProduct = {} // Added for preview
+            onNavigateToAddProduct = {}
         )
     }
 }
