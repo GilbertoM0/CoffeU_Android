@@ -64,7 +64,7 @@ fun AllProductsScreen(
                 allKitchens
             } else {
                 allKitchens.filter {
-                    it.name.contains(searchText, ignoreCase = true)
+                    (it.name ?: "").contains(searchText, ignoreCase = true)
                 }
             }
         }
@@ -134,7 +134,7 @@ fun AllProductsScreen(
                                 onAddToCartClicked = {
                                     authViewModel.addToCart(kitchen)
                                     scope.launch {
-                                        snackbarHostState.showSnackbar("${kitchen.name} ha sido añadido al carrito")
+                                        snackbarHostState.showSnackbar("${kitchen.name ?: "Producto"} ha sido añadido al carrito")
                                     }
                                 }
                             )
@@ -173,7 +173,7 @@ fun ProductRowItem(
         // Details
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = kitchen.name,
+                text = kitchen.name ?: "",
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground
@@ -182,10 +182,10 @@ fun ProductRowItem(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Star, contentDescription = "Rating", tint = Color(0xFFFFC107), modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("${kitchen.rating} (${kitchen.reviewCount} Reviews)", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("${kitchen.rating ?: 0.0} (${kitchen.reviewCount ?: 0} Reviews)", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "$${kitchen.price}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, fontSize = 18.sp)
+            Text(text = "$${kitchen.price ?: "0.00"}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, fontSize = 18.sp)
         }
 
         // Add Button

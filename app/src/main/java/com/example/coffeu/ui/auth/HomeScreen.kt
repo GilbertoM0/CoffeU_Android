@@ -155,7 +155,7 @@ fun HomeScreen(
                                     onToggleFavorite = {
                                         authViewModel.toggleFavorite(kitchen)
                                         scope.launch {
-                                            snackbarHostState.showSnackbar("${kitchen.name} ha sido añadido a favoritos")
+                                            snackbarHostState.showSnackbar("${kitchen.name ?: "Producto"} ha sido añadido a favoritos")
                                         }
                                     }
                                 )
@@ -186,7 +186,7 @@ fun HomeScreen(
                                 onToggleFavorite = {
                                     authViewModel.toggleFavorite(kitchen)
                                     scope.launch {
-                                        snackbarHostState.showSnackbar("${kitchen.name} ha sido añadido a favoritos")
+                                        snackbarHostState.showSnackbar("${kitchen.name ?: "Producto"} ha sido añadido a favoritos")
                                     }
                                 }
                             )
@@ -415,7 +415,7 @@ fun KitchenCard(
                     modifier = Modifier.matchParentSize(),
                 )
                 Text(
-                    text = kitchen.discount,
+                    text = kitchen.discount ?: "",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp,
@@ -442,7 +442,7 @@ fun KitchenCard(
             }
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(
-                    text = kitchen.name,
+                    text = kitchen.name ?: "",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
@@ -464,13 +464,13 @@ fun KitchenCard(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "${kitchen.rating} - ${kitchen.category}",
+                            text = "${kitchen.rating ?: 0.0} - ${kitchen.category ?: ""}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     Text(
-                        text = "$${kitchen.price}",
+                        text = "$${kitchen.price ?: "0.00"}",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
@@ -479,13 +479,13 @@ fun KitchenCard(
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "${kitchen.deliveryTime} • ${kitchen.size}",
+                        text = "${kitchen.deliveryTime ?: ""} • ${kitchen.size ?: ""}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "• ${kitchen.distance}",
+                        text = "• ${kitchen.distance ?: ""}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

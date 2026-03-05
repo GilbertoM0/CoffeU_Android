@@ -38,7 +38,7 @@ import java.util.Locale
 @Composable
 fun MyOrderScreen(authViewModel: AuthViewModel = viewModel()) {
     val cartItems = authViewModel.cartItems
-    val total = cartItems.sumOf { (it.kitchen.price.toDoubleOrNull() ?: 0.0) * it.quantity }
+    val total = cartItems.sumOf { (it.kitchen.price?.toDoubleOrNull() ?: 0.0) * it.quantity }
 
     Scaffold(
         topBar = {
@@ -87,8 +87,8 @@ fun CartItemRow(item: CartItem, authViewModel: AuthViewModel) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(item.kitchen.name, fontWeight = FontWeight.Bold)
-                Text("$${item.kitchen.price}", color = MaterialTheme.colorScheme.primary)
+                Text(item.kitchen.name ?: "", fontWeight = FontWeight.Bold)
+                Text("$${item.kitchen.price ?: "0.00"}", color = MaterialTheme.colorScheme.primary)
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
