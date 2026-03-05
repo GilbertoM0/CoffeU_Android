@@ -2,10 +2,10 @@ package com.example.coffeu.ui.theme
 
 import androidx.compose.ui.graphics.Color
 // Colores Primarios (Botones principales, elementos destacados)
-val PrimaryNormal = Color(0xFFEF6820) // Botones primarios, elementos activos
-val PrimaryLightActive = Color(0xFFFF692E) // Botones primarios en estado activo
-val PrimaryLightHover = Color(0xFFFF6B0E) // Botones primarios en hover (para web)
-val PrimaryLight = Color(0xFFFF982E) // Variante clara del color primario
+val PrimaryNormal = Color(0xFF6E033E) // Botones primarios, elementos activos
+val PrimaryLightActive = Color(0xFF883055) // Botones primarios en estado activo
+val PrimaryLightHover = Color(0xFFA25C7C) // Botones primarios en hover (para web)
+val PrimaryLight = Color(0xFFBC88A3) // Variante clara del color primario
 
 // Colores de Texto y Etiquetas
 val LabelPrimary = Color(0xFF1F1F1F) // Texto principal en fondos oscuros
