@@ -64,6 +64,7 @@ fun HomeScreen(
     val kitchens = authViewModel.kitchenList
     val isLoadingList = authViewModel.isLoading
     val error = authViewModel.kitchenListError
+    val unreadCount = authViewModel.unreadNotificationsCount
 
     val shuffledKitchens = remember(kitchens) {
         kitchens.shuffled()
@@ -87,11 +88,13 @@ fun HomeScreen(
                 onMyOrderClicked = onNavigateToMyOrder
             )
         },
-        floatingActionButton = {
+
+        /*AQUI Estaba El Boton de Añadir productos*/
+        /*floatingActionButton = {
             FloatingActionButton(onClick = onNavigateToAddProduct) {
                 Icon(Icons.Default.Add, contentDescription = "Add Product")
             }
-        },
+        },*/
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         LazyColumn(
@@ -102,6 +105,7 @@ fun HomeScreen(
             item {
                 HomeHeader(
                     userName = username,
+                    notificationCount = unreadCount,
                     onNotificationClicked = onNotificationClicked,
                     onProfileImageClicked = onNavigateToProfile
                 )
@@ -257,11 +261,13 @@ fun HomeHeader(
 
         BadgedBox(
             badge = {
-                Badge(
-                    containerColor = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.offset((-4).dp, 4.dp)
-                ) {
-                    Text(text = notificationCount.toString(), fontSize = 10.sp, color = MaterialTheme.colorScheme.onError)
+                if (notificationCount > 0) {
+                    Badge(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.offset((-4).dp, 4.dp)
+                    ) {
+                        Text(text = notificationCount.toString(), fontSize = 10.sp, color = MaterialTheme.colorScheme.onError)
+                    }
                 }
             }
         ) {

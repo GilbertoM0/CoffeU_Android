@@ -1,5 +1,6 @@
 package com.example.coffeu.ui.viewmodel
 
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -14,6 +15,7 @@ import com.example.coffeu.data.model.LoginRequest
 import com.example.coffeu.data.model.LoginResponse
 import com.example.coffeu.data.model.RegisterRequest
 import com.example.coffeu.data.model.VerifyCodeRequest
+import com.example.coffeu.data.model.NotificationItem
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
@@ -43,6 +45,41 @@ class AuthViewModel : ViewModel() {
 
     // ✅ ESTADO para el carrito de compras
     val cartItems = mutableStateListOf<CartItem>()
+
+    // ✅ ESTADO para las notificaciones
+    val notifications = mutableStateListOf(
+        NotificationItem(
+            id = 1,
+            title = "Notificación",
+            message = "esta es una notificacion de Ejemplo",
+            time = "Ahora"
+        ),
+        NotificationItem(
+            id = 2,
+            title = "Promoción de Café",
+            message = "¡Disfruta de un 2x1 en todos nuestros lattes hoy!",
+            time = "Hace 1 hora"
+        ),
+        NotificationItem(
+            id = 3,
+            title = "Actualización de Pedido",
+            message = "Tu pedido ha sido recibido y está en preparación.",
+            time = "Hace 3 horas",
+            isRead = true
+        )
+    )
+
+    // ✅ Contador de notificaciones no leídas
+    val unreadNotificationsCount by derivedStateOf {
+        notifications.count { !it.isRead }
+    }
+
+    fun markNotificationAsRead(id: Int) {
+        val index = notifications.indexOfFirst { it.id == id }
+        if (index != -1 && !notifications[index].isRead) {
+            notifications[index] = notifications[index].copy(isRead = true)
+        }
+    }
 
     fun isFavorite(kitchen: Kitchen): Boolean {
         return favoriteKitchens.any { it.id == kitchen.id }
