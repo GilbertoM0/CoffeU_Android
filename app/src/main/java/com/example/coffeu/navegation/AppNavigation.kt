@@ -21,7 +21,7 @@ import com.example.coffeu.ui.products.FavProductsScreen
 import com.example.coffeu.ui.products.ProductDetailScreen
 import com.example.coffeu.ui.profilensetting.ChangePasswordScreen
 import com.example.coffeu.ui.profilensetting.EditProfileScreen
-import com.example.coffeu.ui.profilensetting.NotificationsScreen
+import com.example.coffeu.ui.notifications.NotificationsScreen
 import com.example.coffeu.ui.profilensetting.ProfileScreen
 import com.example.coffeu.ui.preview.PreviewScreen
 import com.example.coffeu.ui.viewmodel.AuthViewModel
@@ -152,6 +152,9 @@ fun AppNavigation(
                 onSearchClicked = {
                     navController.navigate(Screen.AllProducts)
                 },
+                onNotificationClicked = {
+                    navController.navigate(Screen.Notifications)
+                },
                 onNavigateToProfile = {
                     navController.navigate(Screen.Profile)
                 },
@@ -262,7 +265,10 @@ fun AppNavigation(
 
         // --- NOTIFICATIONS SCREEN ---
         composable(Screen.Notifications) {
-            NotificationsScreen(onBackClicked = { navController.popBackStack() })
+            NotificationsScreen(
+                authViewModel = authViewModel,
+                onBackClicked = { navController.popBackStack() }
+            )
         }
 
         // --- CHANGE PASSWORD SCREEN ---
