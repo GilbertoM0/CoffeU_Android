@@ -38,7 +38,7 @@ fun SplashScreen() {
         )
         Spacer(modifier = Modifier.height(24.dp))
         Text(
-            text = "CoffeeU",
+            text = "Casa Gamu",
             fontSize = 48.sp,
             fontWeight = FontWeight.Bold,
             color = LabelPrimary

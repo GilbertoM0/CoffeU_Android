@@ -1,5 +1,7 @@
 package com.example.coffeu.ui.auth
 
+import android.content.Context
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,11 +18,14 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -29,41 +34,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import com.example.coffeu.R // Necesitas tener R.drawable.xxx
-// Nota: La importación com.example.coffeu.ui.auth.Kitchen no es necesaria si Kitchen está en este archivo
+import com.example.coffeu.R
+import com.example.coffeu.data.model.Kitchen
 import com.example.coffeu.ui.theme.CoffeUTheme
 import com.example.coffeu.ui.viewmodel.AuthViewModel
-import com.example.coffeu.data.model.Kitchen
+import kotlinx.coroutines.launch
 
-// =================================================================
-// ESTRUCTURA DE DATOS (MODELOS)
-// =================================================================
 data class FoodCategory(val id: Int, val name: String, val icon: Int)
-data class Kitchen(
-    val id: Int,
-    val name: String,
-    val discount: String,
-    val rating: Double,
-    val reviewCount: Int,
-    val price: String,
-    val deliveryTime: String,
-    val distance: String,
-    val image: Int
-)
 
-// --- Simulación de Datos (PLACEHOLDERS) ---
-/*val categories = listOf(
-    FoodCategory(1, "Pizza", R.drawable.img),
-    FoodCategory(2, "Burgers", R.drawable.img),
-    FoodCategory(3, "Cookies", R.drawable.img),
-    FoodCategory(4, "Pasta", R.drawable.img),
-    FoodCategory(5, "Sushi", R.drawable.img),
-)*/
-
-
-// =================================================================
-// COMPONENTE PRINCIPAL DE LA PANTALLA
-// =================================================================
 @Composable
 fun HomeScreen(
     username: String,
@@ -71,23 +49,52 @@ fun HomeScreen(
     onSearchClicked: () -> Unit = {},
     onNotificationClicked: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
-    authViewModel: AuthViewModel = viewModel() // <--- Obtener ViewModel
+    onNavigateToFavorites: () -> Unit,
+    onNavigateToMyOrder: () -> Unit,
+    onNavigateToProductDetail: (Int) -> Unit,
+    onNavigateToAllProducts: () -> Unit,
+    onNavigateToAddProduct: () -> Unit,
+    authViewModel: AuthViewModel = viewModel()
 ) {
 
-    // 1. Cargar datos al inicio
     LaunchedEffect(Unit) {
         authViewModel.loadKitchens()
     }
 
-    // 2. Observar el estado del ViewModel
-    val kitchens = authViewModel.kitchenList // Lista real (observable)
+    val kitchens = authViewModel.kitchenList
     val isLoadingList = authViewModel.isLoading
     val error = authViewModel.kitchenListError
+    val unreadCount = authViewModel.unreadNotificationsCount
+
+    val shuffledKitchens = remember(kitchens) {
+        kitchens.shuffled()
+    }
+    val randomKitchens = remember(shuffledKitchens) {
+        shuffledKitchens.take(10)
+    }
+    val secondRandomKitchens = remember(shuffledKitchens) {
+        shuffledKitchens.drop(10).take(10)
+    }
+
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            HomeBottomBar(onProfileClicked = onNavigateToProfile)
+            HomeBottomBar(
+                onProfileClicked = onNavigateToProfile,
+                onFavoritesClicked = onNavigateToFavorites,
+                onMyOrderClicked = onNavigateToMyOrder
+            )
         },
+
+        /*AQUI Estaba El Boton de Añadir productos*/
+        /*floatingActionButton = {
+            FloatingActionButton(onClick = onNavigateToAddProduct) {
+                Icon(Icons.Default.Add, contentDescription = "Add Product")
+            }
+        },*/
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         LazyColumn(
@@ -95,48 +102,39 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // 1. Header (Perfil y Ubicación)
             item {
                 HomeHeader(
                     userName = username,
+                    notificationCount = unreadCount,
                     onNotificationClicked = onNotificationClicked,
                     onProfileImageClicked = onNavigateToProfile
                 )
             }
 
-            // 2. Search Bar
             item {
                 SearchBar(onClick = onSearchClicked)
             }
 
-            // 3. Promo Banner (30% OFF)
             item {
                 PromoBanner()
             }
 
-            // 4. Categories Row
-           /* item {
-                FoodCategoriesRow(categories = categories)
-            }*/
-
-            // 5. Kitchens Near You Header
             item {
-                KitchensHeader()
+                KitchensHeader(title = "Cocina cerca de ti", onSeeAllClicked = onNavigateToAllProducts)
             }
 
-            // 6. Kitchens Near You Row (Mostrar datos dinámicos)
             item {
                 when {
-                    // Muestra carga si está ocupado y la lista está vacía (primera carga)
                     isLoadingList && kitchens.isEmpty() -> {
                         Box(
-                            modifier = Modifier.fillMaxWidth().height(200.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             CircularProgressIndicator()
                         }
                     }
-                    // Muestra error si falló la carga
                     error != null -> {
                         Text(
                             text = "Error de carga: $error",
@@ -144,7 +142,6 @@ fun HomeScreen(
                             modifier = Modifier.padding(16.dp)
                         )
                     }
-                    // Muestra la lista si hay datos
                     else -> {
                         LazyRow(
                             contentPadding = PaddingValues(
@@ -154,12 +151,49 @@ fun HomeScreen(
                             ),
                             horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            items(kitchens) { kitchen ->
-                                // Pasa el callback de navegación al hacer clic
+                            items(randomKitchens) { kitchen ->
                                 KitchenCard(
-                                    kitchen = kitchen
+                                    kitchen = kitchen,
+                                    authViewModel = authViewModel,
+                                    onCardClick = { onNavigateToProductDetail(kitchen.id) },
+                                    onToggleFavorite = {
+                                        authViewModel.toggleFavorite(kitchen)
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar("${kitchen.name ?: "Producto"} ha sido añadido a favoritos")
+                                        }
+                                    }
                                 )
                             }
+                        }
+                    }
+                }
+            }
+
+            if (secondRandomKitchens.isNotEmpty()) {
+                item {
+                    KitchensHeader(title = "Más para descubrir", onSeeAllClicked = onNavigateToAllProducts)
+                }
+                item {
+                    LazyRow(
+                        contentPadding = PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            bottom = 16.dp
+                        ),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(secondRandomKitchens) { kitchen ->
+                            KitchenCard(
+                                kitchen = kitchen,
+                                authViewModel = authViewModel,
+                                onCardClick = { onNavigateToProductDetail(kitchen.id) },
+                                onToggleFavorite = {
+                                    authViewModel.toggleFavorite(kitchen)
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar("${kitchen.name ?: "Producto"} ha sido añadido a favoritos")
+                                    }
+                                }
+                            )
                         }
                     }
                 }
@@ -168,9 +202,6 @@ fun HomeScreen(
     }
 }
 
-// =================================================================
-// 1. HOME HEADER (Perfil y Ubicación)
-// =================================================================
 @Composable
 fun HomeHeader(
     userName: String,
@@ -179,6 +210,12 @@ fun HomeHeader(
     onNotificationClicked: () -> Unit,
     onProfileImageClicked: () -> Unit
 ) {
+    val context = LocalContext.current
+    val sharedPreferences = remember {
+        context.getSharedPreferences("user_profile_prefs", Context.MODE_PRIVATE)
+    }
+    val imageUri = sharedPreferences.getString("image_uri", null)?.let { Uri.parse(it) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -186,11 +223,9 @@ fun HomeHeader(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Foto de Perfil y Ubicación
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // Placeholder para la Foto de Perfil
-            Image(
-                painter = painterResource(id = R.drawable.home_perfil), // Reemplaza con tu drawable
+            AsyncImage(
+                model = imageUri ?: R.drawable.home_perfil,
                 contentDescription = "Profile Picture",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -201,7 +236,6 @@ fun HomeHeader(
             Spacer(modifier = Modifier.width(8.dp))
             Column {
                 Text(
-                    // Mostramos el nombre de usuario en la primera línea
                     text = "Hola, ${userName}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -216,7 +250,6 @@ fun HomeHeader(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        // Y la ubicación en la segunda
                         text = deliveryLocation,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
@@ -226,14 +259,15 @@ fun HomeHeader(
             }
         }
 
-        // Icono de Notificación
         BadgedBox(
             badge = {
-                Badge(
-                    containerColor = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.offset((-4).dp, 4.dp)
-                ) {
-                    Text(text = notificationCount.toString(), fontSize = 10.sp, color = MaterialTheme.colorScheme.onError)
+                if (notificationCount > 0) {
+                    Badge(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.offset((-4).dp, 4.dp)
+                    ) {
+                        Text(text = notificationCount.toString(), fontSize = 10.sp, color = MaterialTheme.colorScheme.onError)
+                    }
                 }
             }
         ) {
@@ -249,9 +283,6 @@ fun HomeHeader(
     }
 }
 
-// =================================================================
-// 2. SEARCH BAR
-// =================================================================
 @Composable
 fun SearchBar(onClick: () -> Unit) {
     Row(
@@ -278,7 +309,6 @@ fun SearchBar(onClick: () -> Unit) {
             style = MaterialTheme.typography.bodyLarge
         )
         Spacer(modifier = Modifier.weight(1f))
-        // Icono de Filtro (los 3 puntos)
         Icon(
             imageVector = Icons.Default.Favorite,
             contentDescription = "Filter",
@@ -288,9 +318,6 @@ fun SearchBar(onClick: () -> Unit) {
     }
 }
 
-// =================================================================
-// 3. PROMO BANNER
-// =================================================================
 @Composable
 fun PromoBanner() {
     Box(
@@ -300,15 +327,12 @@ fun PromoBanner() {
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clip(RoundedCornerShape(16.dp))
     ) {
-        // Imagen de Fondo del Banner
         Image(
-            painter = painterResource(id = R.drawable.home_placeholderpizza_home), // REEMPLAZAR con tu drawable
+            painter = painterResource(id = R.drawable.home_placeholderpizza_home),
             contentDescription = "Offer Banner",
             contentScale = ContentScale.Crop,
             modifier = Modifier.matchParentSize()
         )
-
-        // Contenido del Banner
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -328,7 +352,7 @@ fun PromoBanner() {
             )
             Spacer(modifier = Modifier.height(16.dp))
             Button(
-                onClick = { /* Acción de pedido */ },
+                onClick = { },
                 shape = RoundedCornerShape(20.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary)
             ) {
@@ -342,62 +366,8 @@ fun PromoBanner() {
     }
 }
 
-// =================================================================
-// 4. CATEGORIES ROW
-// =================================================================
 @Composable
-fun FoodCategoriesRow(categories: List<FoodCategory>) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        categories.forEach { category ->
-            // Simula que "Pizza" está seleccionado
-            CategoryItem(category = category, isSelected = category.name == "Pizza")
-        }
-    }
-}
-
-@Composable
-fun CategoryItem(category: FoodCategory, isSelected: Boolean) {
-    val containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
-    val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(24.dp))
-            .background(containerColor)
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable { /* Acción de selección */ },
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Icono de Comida
-        Box(
-            modifier = Modifier
-                .size(24.dp)
-                .clip(CircleShape)
-                .background(contentColor.copy(alpha = 0.2f))
-        ) {
-            // Image(painter = painterResource(id = category.icon), contentDescription = category.name)
-        }
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = category.name,
-            color = contentColor,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 16.sp
-        )
-    }
-}
-
-// =================================================================
-// 5. KITCHENS HEADER
-// =================================================================
-@Composable
-fun KitchensHeader(onSeeAllClicked: () -> Unit = {}) {
+fun KitchensHeader(title: String, onSeeAllClicked: () -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -406,7 +376,7 @@ fun KitchensHeader(onSeeAllClicked: () -> Unit = {}) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "Cocina cerca de ti",
+            text = title,
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
@@ -421,43 +391,37 @@ fun KitchensHeader(onSeeAllClicked: () -> Unit = {}) {
     }
 }
 
-// =================================================================
-// 6. KITCHEN CARD
-// =================================================================
-// Archivo: HomeScreen.kt (Función KitchenCard)
-
 @Composable
-fun KitchenCard(kitchen: Kitchen) { // ✅ Ya no acepta onCardClick
+fun KitchenCard(
+    kitchen: Kitchen,
+    authViewModel: AuthViewModel,
+    onCardClick: () -> Unit,
+    onToggleFavorite: () -> Unit
+) {
+    val isFavorite = authViewModel.isFavorite(kitchen)
+
     Card(
         modifier = Modifier
             .width(260.dp)
-            // ✅ CORRECCIÓN: La tarjeta sigue siendo clickable, pero la acción no hace nada.
-            .clickable { /* Acción deshabilitada temporalmente */ },
+            .clickable(onClick = onCardClick),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column {
-            // Imagen, Descuento y Favorito
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp)
             ) {
-                // ✅ REEMPLAZO DEL PLACEHOLDER CON COIL (AsyncImage)
                 AsyncImage(
-                    // La URL viene de Django
                     model = kitchen.imageUrl,
                     contentDescription = kitchen.name,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.matchParentSize(),
-                    // Puedes añadir un placeholder o indicador de carga aquí
-                   // placeholder = painterResource(R.drawable.img) // Usa un drawable local como placeholder
                 )
-
-                // Descuento
                 Text(
-                    text = kitchen.discount,
+                    text = kitchen.discount ?: "",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp,
@@ -468,11 +432,10 @@ fun KitchenCard(kitchen: Kitchen) { // ✅ Ya no acepta onCardClick
                         .background(MaterialTheme.colorScheme.error)
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 )
-                // Corazón de Favorito
                 Icon(
-                    imageVector = Icons.Default.Favorite,
+                    imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                     contentDescription = "Favorite",
-                    tint = Color.White,
+                    tint = if (isFavorite) Color.Red else Color.White,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp)
@@ -480,14 +443,12 @@ fun KitchenCard(kitchen: Kitchen) { // ✅ Ya no acepta onCardClick
                         .clip(CircleShape)
                         .background(Color.Black.copy(alpha = 0.4f))
                         .padding(4.dp)
-                        .clickable { /* Acción de Favorito */ }
+                        .clickable(onClick = onToggleFavorite)
                 )
             }
-
-            // Detalles
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(
-                    text = kitchen.name,
+                    text = kitchen.name ?: "",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
@@ -495,48 +456,42 @@ fun KitchenCard(kitchen: Kitchen) { // ✅ Ya no acepta onCardClick
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                // Tiempo, Distancia, Rating y Precio (Mantener el resto de la lógica)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Rating
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.Star,
                             contentDescription = "Rating",
-                            tint = Color(0xFFFFC107), // Keep yellow for rating
+                            tint = Color(0xFFFFC107),
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "${kitchen.rating} (${kitchen.reviewCount} Reviews)",
+                            text = "${kitchen.rating ?: 0.0} - ${kitchen.category ?: ""}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-
-                    // Precio
                     Text(
-                        text = "$${kitchen.price}",
+                        text = "$${kitchen.price ?: "0.00"}",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
                 Spacer(modifier = Modifier.height(4.dp))
-
-                // Tiempo de entrega y Distancia
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "${kitchen.deliveryTime}",
+                        text = "${kitchen.deliveryTime ?: ""} • ${kitchen.size ?: ""}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "• ${kitchen.distance}",
+                        text = "• ${kitchen.distance ?: ""}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -546,11 +501,8 @@ fun KitchenCard(kitchen: Kitchen) { // ✅ Ya no acepta onCardClick
     }
 }
 
-// =================================================================
-// 7. BOTTOM NAVIGATION BAR
-// =================================================================
 @Composable
-fun HomeBottomBar(onProfileClicked: () -> Unit) {
+fun HomeBottomBar(onProfileClicked: () -> Unit, onFavoritesClicked: () -> Unit, onMyOrderClicked: () -> Unit) {
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 8.dp
@@ -561,7 +513,6 @@ fun HomeBottomBar(onProfileClicked: () -> Unit) {
             Pair("Favorites", Icons.Filled.Favorite),
             Pair("Profile", Icons.Filled.Person)
         )
-        // 'Home' está seleccionado en la imagen
         val selectedItem = navItems.first().first
 
         navItems.forEach { (label, icon) ->
@@ -569,8 +520,10 @@ fun HomeBottomBar(onProfileClicked: () -> Unit) {
             NavigationBarItem(
                 selected = isSelected,
                 onClick = {
-                    if (label == "Profile") {
-                        onProfileClicked()
+                    when (label) {
+                        "Profile" -> onProfileClicked()
+                        "Favorites" -> onFavoritesClicked()
+                        "My Order" -> onMyOrderClicked()
                     }
                 },
                 icon = {
@@ -600,30 +553,19 @@ fun HomeBottomBar(onProfileClicked: () -> Unit) {
 }
 
 
-// =================================================================
-// PREVIEW
-// =================================================================
 @Preview(showBackground = true, name = "Light Mode")
 @Composable
 fun HomeScreenPreview() {
     CoffeUTheme {
-        // ✅ CORRECCIÓN: Ahora pasamos el valor 'username' (ej: "Stefanie")
-        HomeScreen(
-            username = "Stefanie", // <--- ¡Añadir este parámetro!
-            onLogout = {},
-            onNavigateToProfile = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Dark Mode")
-@Composable
-fun HomeScreenDarkPreview() {
-    CoffeUTheme(darkTheme = true) {
         HomeScreen(
             username = "Stefanie",
             onLogout = {},
-            onNavigateToProfile = {}
+            onNavigateToProfile = {},
+            onNavigateToProductDetail = {},
+            onNavigateToAllProducts = {},
+            onNavigateToFavorites = {},
+            onNavigateToMyOrder = {},
+            onNavigateToAddProduct = {}
         )
     }
 }

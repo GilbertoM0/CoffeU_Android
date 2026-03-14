@@ -1,7 +1,10 @@
 package com.example.coffeu.navigation
 
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -16,11 +19,16 @@ import com.example.coffeu.ui.password.SendCodeScreen
 import com.example.coffeu.ui.password.VerifyCodeScreen
 import com.example.coffeu.ui.preview.PreviewScreen
 import com.example.coffeu.ui.preview.SplashScreen
+import com.example.coffeu.ui.products.AddProductScreen
+import com.example.coffeu.ui.products.AllProductsScreen
+import com.example.coffeu.ui.products.FavProductsScreen
+import com.example.coffeu.ui.products.ProductDetailScreen
 import com.example.coffeu.ui.profilensetting.ChangePasswordScreen
 import com.example.coffeu.ui.profilensetting.EditProfileScreen
-import com.example.coffeu.ui.profilensetting.NotificationsScreen
+import com.example.coffeu.ui.notifications.NotificationsScreen
 import com.example.coffeu.ui.profilensetting.ProfileScreen
 import com.example.coffeu.ui.viewmodel.AuthViewModel
+import com.example.coffeu.ui.myorder.MyOrderScreen
 import kotlinx.coroutines.delay
 
 object Screen {
@@ -35,7 +43,12 @@ object Screen {
     const val ChangePassword = "change_password_screen"
     const val SendCode = "send_code_screen"
     const val VerifyCode = "verify_code_screen"
-    const val NewPassword = "new_password_screen?currentPassword={currentPassword}&token={token}"
+    const val NewPassword = "new_password_screen"
+    const val ProductDetail = "product_detail_screen/{kitchenId}"
+    const val AllProducts = "all_products_screen"
+    const val FavoriteProducts = "favorite_products_screen"
+    const val MyOrder = "my_order_screen"
+    const val AddProduct = "add_product_screen"
 }
 
 @Composable
@@ -43,12 +56,26 @@ fun AppNavigation(
     authViewModel: AuthViewModel = viewModel()
 ) {
     val navController = rememberNavController()
+    val context = LocalContext.current
+    val sharedPreferences = remember {
+        context.getSharedPreferences("user_session_prefs", Context.MODE_PRIVATE)
+    }
+
+    val isLoggedIn = remember { sharedPreferences.getBoolean("is_logged_in", false) }
+    val username = remember { sharedPreferences.getString("username", "") ?: "" }
+
+    val startDestination = if (isLoggedIn) {
+        Screen.Splash
+    } else {
+        Screen.Splash
+    }
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Splash
+        startDestination = startDestination
     ) {
 
+        // --- SPLASH SCREEN ---
         composable(Screen.Splash) {
             SplashScreen()
             LaunchedEffect(Unit) {
@@ -59,6 +86,7 @@ fun AppNavigation(
             }
         }
 
+        // --- PREVIEW SCREEN ---
         composable(Screen.Preview) {
             PreviewScreen(onNavigateToLogin = {
                 navController.navigate(Screen.Login) {
@@ -67,12 +95,14 @@ fun AppNavigation(
             })
         }
 
+        // --- LOGIN SCREEN ---
         composable(Screen.Login) {
             LoginScreen(
                 authViewModel = authViewModel,
                 onLoginSuccess = { token ->
-                    val username = authViewModel.loginState?.user?.nombreUsuario ?: "Invitado"
-                    navController.navigate(Screen.Home.replace("{username}", username)) {
+                    val loginResponse = authViewModel.loginState
+                    val loggedInUsername = loginResponse?.user?.nombreUsuario ?: "Invitado"
+                    navController.navigate(Screen.Home.replace("{username}", loggedInUsername)) {
                         popUpTo(Screen.Login) { inclusive = true }
                     }
                 },
@@ -80,35 +110,109 @@ fun AppNavigation(
             )
         }
 
+        // --- REGISTER SCREEN ---
         composable(Screen.Register) {
             RegisterScreen(
                 authViewModel = authViewModel,
                 onRegistrationSuccess = {
-                    navController.navigate(Screen.Login) {
-                        popUpTo(Screen.Register) { inclusive = true }
-                    }
+                    navController.navigate(Screen.VerifyCode)
                 },
                 onNavigateToLogin = { navController.navigate(Screen.Login) }
             )
         }
 
+        // --- HOME SCREEN ---
         composable(
             route = Screen.Home,
             arguments = listOf(navArgument("username") { type = NavType.StringType })
         ) { backStackEntry ->
-            val username = backStackEntry.arguments?.getString("username") ?: "Error"
+            val currentUsername = backStackEntry.arguments?.getString("username") ?: "Error"
             HomeScreen(
-                username = username,
+                username = currentUsername,
+                authViewModel = authViewModel,
                 onLogout = {
                     authViewModel.logout()
+                    with(sharedPreferences.edit()) {
+                        clear()
+                        apply()
+                    }
                     navController.navigate(Screen.Login) {
                         popUpTo(navController.graph.startDestinationId) { inclusive = true }
                     }
                 },
-                onNavigateToProfile = { navController.navigate(Screen.Profile) }
+                onSearchClicked = {
+                    navController.navigate(Screen.AllProducts)
+                },
+                onNotificationClicked = {
+                    navController.navigate(Screen.Notifications)
+                },
+                onNavigateToProfile = {
+                    navController.navigate(Screen.Profile)
+                },
+                onNavigateToFavorites = {
+                    navController.navigate(Screen.FavoriteProducts)
+                },
+                onNavigateToMyOrder = {
+                    navController.navigate(Screen.MyOrder)
+                },
+                onNavigateToProductDetail = { kitchenId ->
+                    navController.navigate("product_detail_screen/$kitchenId")
+                },
+                onNavigateToAllProducts = {
+                    navController.navigate(Screen.AllProducts)
+                },
+                onNavigateToAddProduct = {
+                    navController.navigate(Screen.AddProduct)
+                }
             )
         }
 
+        // --- ALL PRODUCTS SCREEN ---
+        composable(Screen.AllProducts) {
+            AllProductsScreen(
+                authViewModel = authViewModel,
+                onBackClicked = { navController.popBackStack() },
+                onProductClicked = { kitchenId ->
+                    navController.navigate("product_detail_screen/$kitchenId")
+                }
+            )
+        }
+
+        // --- FAVORITE PRODUCTS SCREEN ---
+        composable(Screen.FavoriteProducts) {
+            FavProductsScreen(
+                authViewModel = authViewModel,
+                onBackClicked = { navController.popBackStack() },
+                onProductClicked = { kitchenId ->
+                    navController.navigate("product_detail_screen/$kitchenId")
+                }
+            )
+        }
+
+        // --- MY ORDER SCREEN ---
+        composable(Screen.MyOrder) {
+            MyOrderScreen(authViewModel = authViewModel)
+        }
+
+        // --- PRODUCT DETAIL SCREEN ---
+        composable(
+            route = Screen.ProductDetail,
+            arguments = listOf(navArgument("kitchenId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val kitchenId = backStackEntry.arguments?.getInt("kitchenId")
+            val kitchen = authViewModel.kitchenList.find { it.id == kitchenId }
+            if (kitchen != null) {
+                ProductDetailScreen(
+                    kitchen = kitchen,
+                    authViewModel = authViewModel,
+                    onBackClicked = { navController.popBackStack() }
+                )
+            } else {
+                navController.popBackStack()
+            }
+        }
+
+        // --- PROFILE SCREEN ---
         composable(Screen.Profile) {
             val user = authViewModel.loginState?.user
             if (user != null) {
@@ -132,6 +236,7 @@ fun AppNavigation(
             }
         }
 
+        // --- EDIT PROFILE SCREEN ---
         composable(Screen.EditProfile) {
             val user = authViewModel.loginState?.user
             if (user != null) {
@@ -149,51 +254,45 @@ fun AppNavigation(
             }
         }
 
+        // --- NOTIFICATIONS SCREEN ---
         composable(Screen.Notifications) {
-            NotificationsScreen(onBackClicked = { navController.popBackStack() })
+            NotificationsScreen(
+                authViewModel = authViewModel,
+                onBackClicked = { navController.popBackStack() }
+            )
         }
 
+        // --- CHANGE PASSWORD SCREEN ---
         composable(Screen.ChangePassword) {
             ChangePasswordScreen(
                 onBackClicked = { navController.popBackStack() },
-                onForgotPasswordClicked = { navController.navigate(Screen.SendCode) },
-                onCreateNewPasswordClicked = { currentPassword ->
-                    navController.navigate("new_password_screen?currentPassword=$currentPassword&token=")
-                }
+                onForgotPasswordClicked = { navController.navigate(Screen.SendCode) }
             )
         }
 
+        // --- SEND CODE SCREEN ---
         composable(Screen.SendCode) {
             SendCodeScreen(
                 onBackClicked = { navController.popBackStack() },
-                onContinueClicked = { 
-                    navController.navigate(Screen.VerifyCode)
-                }
+                onContinueClicked = { navController.navigate(Screen.VerifyCode) }
             )
         }
 
+        // --- VERIFY CODE SCREEN ---
         composable(Screen.VerifyCode) {
             VerifyCodeScreen(
+                authViewModel = authViewModel,
                 onBackClicked = { navController.popBackStack() },
-                onContinueClicked = { token ->
-                    navController.navigate("new_password_screen?currentPassword=&token=$token")
+                onVerificationSuccess = {
+                    navController.navigate(Screen.Login) {
+                        popUpTo(Screen.Register) { inclusive = true }
+                    }
                 }
             )
         }
 
-        composable(
-            route = Screen.NewPassword,
-            arguments = listOf(
-                navArgument("currentPassword") { 
-                    type = NavType.StringType
-                    nullable = true
-                },
-                navArgument("token") { 
-                    type = NavType.StringType
-                    nullable = true 
-                }
-            )
-        ) {
+        // --- NEW PASSWORD SCREEN ---
+        composable(Screen.NewPassword) {
             NewPasswordScreen(
                 onBackClicked = { navController.popBackStack() },
                 onCreatePasswordClicked = {
@@ -201,6 +300,15 @@ fun AppNavigation(
                         popUpTo(Screen.Login) { inclusive = true }
                     }
                 }
+            )
+        }
+
+        // --- ADD PRODUCT SCREEN ---
+        composable(Screen.AddProduct) {
+            AddProductScreen(
+                authViewModel = authViewModel,
+                onProductAdded = { navController.popBackStack() },
+                onBackClicked = { navController.popBackStack() }
             )
         }
     }

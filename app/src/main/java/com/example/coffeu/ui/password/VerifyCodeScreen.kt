@@ -20,12 +20,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.coffeu.ui.theme.CoffeUTheme
+import com.example.coffeu.ui.viewmodel.AuthViewModel
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VerifyCodeScreen(onBackClicked: () -> Unit, onContinueClicked: (String) -> Unit) {
+fun VerifyCodeScreen(
+    onBackClicked: () -> Unit,
+    onVerificationSuccess: () -> Unit,
+    authViewModel: AuthViewModel = viewModel()
+) {
+    var email by remember { mutableStateOf("") }
     var otpValue by remember { mutableStateOf("") }
     var seconds by remember { mutableStateOf(48) }
 
@@ -83,7 +90,7 @@ fun VerifyCodeScreen(onBackClicked: () -> Unit, onContinueClicked: (String) -> U
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
-                onClick = { onContinueClicked(otpValue) },
+                onClick = { onVerificationSuccess() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -143,6 +150,6 @@ private fun OtpChar(char: Char?, hasFocus: Boolean) {
 @Composable
 fun VerifyCodeScreenPreview() {
     CoffeUTheme {
-        VerifyCodeScreen(onBackClicked = {}, onContinueClicked = {})
+        VerifyCodeScreen(onBackClicked = {}, onVerificationSuccess = {})
     }
 }

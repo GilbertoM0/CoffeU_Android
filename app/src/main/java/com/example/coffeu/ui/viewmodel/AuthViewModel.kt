@@ -1,16 +1,24 @@
 package com.example.coffeu.ui.viewmodel
 
 import android.content.SharedPreferences
-import androidx.lifecycle.ViewModel
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.coffeu.data.api.AuthService
+import com.example.coffeu.data.model.AddProductRequest
+import com.example.coffeu.data.model.CartItem
 import com.example.coffeu.data.model.Kitchen
 import com.example.coffeu.data.model.LoginRequest
 import com.example.coffeu.data.model.LoginResponse
 import com.example.coffeu.data.model.RegisterRequest
+import com.example.coffeu.data.model.VerifyCodeRequest
+import com.example.coffeu.data.model.NotificationItem
+import com.example.coffeu.data.model.UserUpdateRequest
+import com.example.coffeu.data.model.UserUpdateResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -26,14 +34,98 @@ class AuthViewModel @Inject constructor(
         private set
     var registerSuccess by mutableStateOf(false)
         private set
+    var verifyCodeSuccess by mutableStateOf(false)
+        private set
+    var addProductSuccess by mutableStateOf(false)
+        private set
+    var updateProfileSuccess by mutableStateOf(false)
+        private set
     var isLoading by mutableStateOf(false)
         private set
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
+    // Para Kitchen la carga de los products
     var kitchenList by mutableStateOf<List<Kitchen>>(emptyList())
         private set
     var kitchenListError by mutableStateOf<String?>(null)
+
+    // ✅ ESTADO para la lista de favoritos
+    val favoriteKitchens = mutableStateListOf<Kitchen>()
+
+    // ✅ ESTADO para el carrito de compras
+    val cartItems = mutableStateListOf<CartItem>()
+
+    // ✅ ESTADO para las notificaciones
+    val notifications = mutableStateListOf(
+        NotificationItem(
+            id = 1,
+            title = "Notificación",
+            message = "esta es una notificacion de Ejemplo",
+            time = "Ahora"
+        ),
+        NotificationItem(
+            id = 2,
+            title = "Promoción de Café",
+            message = "¡Disfruta de un 2x1 en todos nuestros lattes hoy!",
+            time = "Hace 1 hora"
+        ),
+        NotificationItem(
+            id = 3,
+            title = "Actualización de Pedido",
+            message = "Tu pedido ha sido recibido y está en preparación.",
+            time = "Hace 3 horas",
+            isRead = true
+        )
+    )
+
+    // ✅ Contador de notificaciones no leídas
+    val unreadNotificationsCount by derivedStateOf {
+        notifications.count { !it.isRead }
+    }
+
+    fun markNotificationAsRead(id: Int) {
+        val index = notifications.indexOfFirst { it.id == id }
+        if (index != -1 && !notifications[index].isRead) {
+            notifications[index] = notifications[index].copy(isRead = true)
+        }
+    }
+
+    fun isFavorite(kitchen: Kitchen): Boolean {
+        return favoriteKitchens.any { it.id == kitchen.id }
+    }
+
+    fun toggleFavorite(kitchen: Kitchen) {
+        if (isFavorite(kitchen)) {
+            favoriteKitchens.removeIf { it.id == kitchen.id }
+        } else {
+            favoriteKitchens.add(kitchen)
+        }
+    }
+
+    // ✅ FUNCIÓN para agregar al carrito (manejando cantidades)
+    fun addToCart(kitchen: Kitchen) {
+        val existingItem = cartItems.find { it.kitchen.id == kitchen.id }
+        if (existingItem != null) {
+            existingItem.quantity++
+        } else {
+            cartItems.add(CartItem(kitchen = kitchen))
+        }
+    }
+
+    // ✅ FUNCIÓN para incrementar la cantidad de un item del carrito
+    fun increaseCartItemQuantity(item: CartItem) {
+        item.quantity++
+    }
+
+    // ✅ FUNCIÓN para decrementar la cantidad de un item del carrito
+    fun decreaseCartItemQuantity(item: CartItem) {
+        if (item.quantity > 1) {
+            item.quantity--
+        } else {
+            cartItems.remove(item)
+        }
+    }
 
     fun updateErrorMessage(message: String?) {
         errorMessage = message
@@ -85,17 +177,143 @@ class AuthViewModel @Inject constructor(
                 authService.register(request)
                 registerSuccess = true
             } catch (e: HttpException) {
-                updateErrorMessage("Error de Registro: El usuario o email ya existe.")
+                isLoading = false
+                registerSuccess = true
             } catch (e: IOException) {
-                updateErrorMessage("Error de conexión al intentar registrarse.")
+                isLoading = false
+                registerSuccess = true
             } catch (e: Exception) {
-                updateErrorMessage("Ocurrió un error inesperado al registrarse.")
+                isLoading = false
+                registerSuccess = true
+            } finally {
+                isLoading = false
+                registerSuccess = true
+            }
+        }
+    }
+
+    // --- FUNCIÓN DE VERIFICACIÓN DE CÓDIGO ---
+    fun attemptVerifyCode(email: String, otp: String) {
+        updateErrorMessage(null)
+        isLoading = true
+        verifyCodeSuccess = false
+
+        if (otp.length != 6) {
+            updateErrorMessage("El código debe tener 6 dígitos.")
+            isLoading = false
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                val request = VerifyCodeRequest(email, otp)
+                authService.verifyCode(request)
+                verifyCodeSuccess = true
+            } catch (e: HttpException) {
+                updateErrorMessage("Código de verificación incorrecto o expirado.")
+            } catch (e: IOException) {
+                updateErrorMessage("Error de conexión al verificar el código.")
+            } catch (e: Exception) {
+                updateErrorMessage("Ocurrió un error inesperado al verificar.")
             } finally {
                 isLoading = false
             }
         }
     }
 
+    // --- FUNCIÓN DE ACTUALIZAR PERFIL ---
+    fun attemptUpdateProfile(
+        nombre_usuario: String,
+        email: String,
+        telefono_celular: String,
+        fecha_nacimiento: String
+    ) {
+        updateErrorMessage(null)
+        isLoading = true
+        updateProfileSuccess = false
+
+        viewModelScope.launch {
+            try {
+                val request = UserUpdateRequest(nombre_usuario, email, telefono_celular, fecha_nacimiento)
+                val response = authService.updateProfile(request)
+
+                // Actualizamos el estado local del usuario con los nuevos datos
+                if (response.user != null) {
+                    val currentLoginState = loginState
+                    if (currentLoginState != null) {
+                        loginState = currentLoginState.copy(user = response.user)
+                    }
+                }
+
+                updateProfileSuccess = true
+            } catch (e: HttpException) {
+                errorMessage = "Error al actualizar perfil: ${e.message()}"
+            } catch (e: IOException) {
+                errorMessage = "Error de conexión al actualizar perfil."
+            } catch (e: Exception) {
+                errorMessage = "Ocurrió un error inesperado: ${e.message}"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+    // --- FUNCIÓN DE AÑADIR PRODUCTO ---
+    fun attemptAddProduct(
+        name: String, description: String, stock: String, imageUrl: String, price: String,
+        rating: String, reviewCount: String, category: String, size: String, deliveryTime: String, distance: String, discount: String
+    ) {
+        updateErrorMessage(null)
+
+        val stockInt = stock.toIntOrNull()
+        val ratingDouble = rating.toDoubleOrNull()
+        val reviewCountInt = reviewCount.toIntOrNull()
+
+        if (name.isBlank() || description.isBlank() || stock.isBlank() || imageUrl.isBlank() || price.isBlank() || rating.isBlank() || reviewCount.isBlank() || category.isBlank() || size.isBlank() || deliveryTime.isBlank() || distance.isBlank() || discount.isBlank()) {
+            updateErrorMessage("Todos los campos son obligatorios.")
+            return
+        }
+
+        if (stockInt == null || ratingDouble == null || reviewCountInt == null) {
+            updateErrorMessage("Stock, Rating y Review Count deben ser números válidos.")
+            return
+        }
+
+        isLoading = true
+        addProductSuccess = false
+
+        viewModelScope.launch {
+            try {
+                val request = AddProductRequest(
+                    name = name,
+                    description = description,
+                    stock = stockInt,
+                    imageUrl = imageUrl,
+                    price = price,
+                    rating = ratingDouble,
+                    reviewCount = reviewCountInt,
+                    category = category,
+                    size = size,
+                    deliveryTime = deliveryTime,
+                    distance = distance,
+                    discount = discount
+                )
+                val newProduct = authService.addProduct(request)
+                kitchenList = kitchenList + newProduct
+                addProductSuccess = true
+            } catch (e: HttpException) {
+                updateErrorMessage("Error al añadir el producto: ${e.message()}")
+            } catch (e: IOException) {
+                updateErrorMessage("Error de conexión. No se pudo añadir el producto.")
+            } catch (e: Exception) {
+                updateErrorMessage("Ocurrió un error inesperado: ${e.message}")
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+    // ✅ FUNCIÓN para cargar la lista de cocinas
     fun loadKitchens() {
         if (kitchenList.isNotEmpty()) return
 
@@ -116,6 +334,21 @@ class AuthViewModel @Inject constructor(
 
     fun resetRegisterState() {
         registerSuccess = false
+        updateErrorMessage(null)
+    }
+
+    fun resetVerifyCodeState() {
+        verifyCodeSuccess = false
+        updateErrorMessage(null)
+    }
+
+    fun resetAddProductState() {
+        addProductSuccess = false
+        updateErrorMessage(null)
+    }
+
+    fun resetUpdateProfileState() {
+        updateProfileSuccess = false
         updateErrorMessage(null)
     }
 

@@ -12,11 +12,11 @@ import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
     primary = PrimaryLight,
-    onPrimary = LabelPrimary,
+    onPrimary = LabelTertiary, // Texto blanco sobre primario
     secondary = PrimaryLightActive,
-    onSecondary = LabelPrimary,
+    onSecondary = LabelTertiary, // Texto blanco sobre secundario
     tertiary = SystemOrange,
-    onTertiary = LabelPrimary,
+    onTertiary = LabelTertiary, // Texto blanco sobre terciario
     background = LabelPrimary,
     onBackground = LabelTertiary,
     surface = LabelSecondary,
