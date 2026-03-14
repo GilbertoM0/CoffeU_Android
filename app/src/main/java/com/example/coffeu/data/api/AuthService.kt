@@ -7,10 +7,13 @@ import com.example.coffeu.data.model.LoginResponse
 import com.example.coffeu.data.model.RegisterRequest
 import com.example.coffeu.data.model.Product
 import com.example.coffeu.data.model.VerifyCodeRequest
+import com.example.coffeu.data.model.UserUpdateRequest
+import com.example.coffeu.data.model.UserUpdateResponse
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Body
 import retrofit2.http.POST
+import retrofit2.http.PUT
 
 interface AuthService {
 
@@ -25,6 +28,11 @@ interface AuthService {
     // Activar cuenta: http://127.0.0.1:3000/accounts/activar/
     @POST("accounts/activar/")
     suspend fun verifyCode(@Body request: VerifyCodeRequest): LoginResponse
+
+    // Actualizar perfil: accounts/update-profile/
+    // Cambiado de @POST a @PUT porque el servidor devolvió 405 (Method Not Allowed)
+    @PUT("accounts/update-profile/")
+    suspend fun updateProfile(@Body request: UserUpdateRequest): UserUpdateResponse
 
     // Obtener la lista de productos (cocinas)
     @GET("products/")
