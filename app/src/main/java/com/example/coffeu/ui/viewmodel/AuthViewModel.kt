@@ -16,6 +16,8 @@ import com.example.coffeu.data.model.LoginResponse
 import com.example.coffeu.data.model.RegisterRequest
 import com.example.coffeu.data.model.VerifyCodeRequest
 import com.example.coffeu.data.model.NotificationItem
+import com.example.coffeu.data.model.UserUpdateRequest
+import com.example.coffeu.data.model.UserUpdateResponse
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
@@ -29,6 +31,8 @@ class AuthViewModel : ViewModel() {
     var verifyCodeSuccess by mutableStateOf(false)
         private set
     var addProductSuccess by mutableStateOf(false)
+        private set
+    var updateProfileSuccess by mutableStateOf(false)
         private set
     var isLoading by mutableStateOf(false)
         private set
@@ -133,6 +137,10 @@ class AuthViewModel : ViewModel() {
                 val request = LoginRequest(email, password)
                 val response = RetrofitClient.authService.login(request)
                 loginState = response
+                
+                // ✅ GUARDAR EL TOKEN PARA FUTURAS PETICIONES
+                RetrofitClient.setToken(response.token)
+                
             } catch (e: HttpException) {
                 errorMessage = "Credenciales inválidas. Verifica tu email y contraseña."
             } catch (e: IOException) {
@@ -213,6 +221,43 @@ class AuthViewModel : ViewModel() {
                 updateErrorMessage("Error de conexión al verificar el código.")
             } catch (e: Exception) {
                 updateErrorMessage("Ocurrió un error inesperado al verificar.")
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+    // --- FUNCIÓN DE ACTUALIZAR PERFIL ---
+    fun attemptUpdateProfile(
+        nombre_usuario: String,
+        email: String,
+        telefono_celular: String,
+        fecha_nacimiento: String
+    ) {
+        updateErrorMessage(null)
+        isLoading = true
+        updateProfileSuccess = false
+
+        viewModelScope.launch {
+            try {
+                val request = UserUpdateRequest(nombre_usuario, email, telefono_celular, fecha_nacimiento)
+                val response = RetrofitClient.authService.updateProfile(request)
+                
+                // Actualizamos el estado local del usuario con los nuevos datos
+                if (response.user != null) {
+                    val currentLoginState = loginState
+                    if (currentLoginState != null) {
+                        loginState = currentLoginState.copy(user = response.user)
+                    }
+                }
+                
+                updateProfileSuccess = true
+            } catch (e: HttpException) {
+                errorMessage = "Error al actualizar perfil: ${e.message()}"
+            } catch (e: IOException) {
+                errorMessage = "Error de conexión al actualizar perfil."
+            } catch (e: Exception) {
+                errorMessage = "Ocurrió un error inesperado: ${e.message}"
             } finally {
                 isLoading = false
             }
@@ -308,7 +353,13 @@ class AuthViewModel : ViewModel() {
         updateErrorMessage(null)
     }
 
+    fun resetUpdateProfileState() {
+        updateProfileSuccess = false
+        updateErrorMessage(null)
+    }
+
     fun logout() {
         loginState = null
+        RetrofitClient.setToken(null) // ✅ LIMPIAR EL TOKEN AL CERRAR SESIÓN
     }
 }
