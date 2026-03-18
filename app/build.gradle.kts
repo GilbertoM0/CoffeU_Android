@@ -66,6 +66,7 @@ dependencies {
 
     // Dependencia de ViewModel Compose (para la función viewModel() )
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
 
     // --- Retrofit y Librerías de Red ---
     // 1. Cliente HTTP (Retrofit)
