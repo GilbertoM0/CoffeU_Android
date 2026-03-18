@@ -1,6 +1,7 @@
 package com.example.coffeu.navigation
 
 import android.content.Context
+import androidx.core.content.edit
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -62,8 +63,6 @@ fun AppNavigation(
     }
 
     val isLoggedIn = remember { sharedPreferences.getBoolean("is_logged_in", false) }
-    val username = remember { sharedPreferences.getString("username", "") ?: "" }
-
     val startDestination = if (isLoggedIn) {
         Screen.Splash
     } else {
@@ -99,7 +98,7 @@ fun AppNavigation(
         composable(Screen.Login) {
             LoginScreen(
                 authViewModel = authViewModel,
-                onLoginSuccess = { token ->
+                onLoginSuccess = { _ ->
                     val loginResponse = authViewModel.loginState
                     val loggedInUsername = loginResponse?.user?.nombreUsuario ?: "Invitado"
                     navController.navigate(Screen.Home.replace("{username}", loggedInUsername)) {
@@ -132,10 +131,7 @@ fun AppNavigation(
                 authViewModel = authViewModel,
                 onLogout = {
                     authViewModel.logout()
-                    with(sharedPreferences.edit()) {
-                        clear()
-                        apply()
-                    }
+                    sharedPreferences.edit { clear() }
                     navController.navigate(Screen.Login) {
                         popUpTo(navController.graph.startDestinationId) { inclusive = true }
                     }
@@ -230,8 +226,10 @@ fun AppNavigation(
                     }
                 )
             } else {
-                navController.navigate(Screen.Login) {
-                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                LaunchedEffect(Unit) {
+                    navController.navigate(Screen.Login) {
+                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                    }
                 }
             }
         }
@@ -245,11 +243,14 @@ fun AppNavigation(
                     email = user.email,
                     phoneNumber = user.telefonoCelular,
                     dateOfBirth = "",
-                    onBackClicked = { navController.popBackStack() }
+                    onBackClicked = { navController.popBackStack() },
+                    authViewModel = authViewModel
                 )
             } else {
-                navController.navigate(Screen.Login) {
-                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                LaunchedEffect(Unit) {
+                    navController.navigate(Screen.Login) {
+                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                    }
                 }
             }
         }
@@ -266,7 +267,10 @@ fun AppNavigation(
         composable(Screen.ChangePassword) {
             ChangePasswordScreen(
                 onBackClicked = { navController.popBackStack() },
-                onForgotPasswordClicked = { navController.navigate(Screen.SendCode) }
+                onForgotPasswordClicked = { navController.navigate(Screen.SendCode) },
+                onCreateNewPasswordClicked = { _ ->
+                    navController.navigate(Screen.NewPassword)
+                }
             )
         }
 
@@ -274,7 +278,7 @@ fun AppNavigation(
         composable(Screen.SendCode) {
             SendCodeScreen(
                 onBackClicked = { navController.popBackStack() },
-                onContinueClicked = { navController.navigate(Screen.VerifyCode) }
+                onContinueClicked = { navController.navigate(Screen.NewPassword) }
             )
         }
 

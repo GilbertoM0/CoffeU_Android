@@ -41,6 +41,10 @@ fun NewPasswordScreen(
                 snackbarHostState.showSnackbar(state.message)
                 viewModel.resetState()
             }
+            NewPasswordUiState.OtpSent -> {
+                snackbarHostState.showSnackbar("OTP enviado correctamente. Revisa tu correo o teléfono.")
+                viewModel.resetState()
+            }
             NewPasswordUiState.Success -> {
                 onCreatePasswordClicked()
             }
@@ -70,19 +74,52 @@ fun NewPasswordScreen(
                 .padding(16.dp)
         ) {
             Text(
-                text = "New Password",
+                text = "Restablecer contraseña",
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Create a new password that is safe and easy to remember",
+                text = "Ingresa correo/teléfono, solicita OTP y luego crea tu nueva contraseña.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.Gray
             )
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            Text("New Password", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = Color.Gray)
+            OutlinedTextField(
+                value = viewModel.identifier,
+                onValueChange = { viewModel.identifier = it },
+                label = { Text("Correo o teléfono") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(
+                onClick = { viewModel.requestOtp() },
+                enabled = uiState != NewPasswordUiState.Loading,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Enviar OTP")
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedTextField(
+                value = viewModel.otp,
+                onValueChange = { viewModel.otp = it },
+                label = { Text("OTP") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text("Nueva contraseña", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = Color.Gray)
             OutlinedTextField(
                 value = viewModel.newPassword,
                 onValueChange = { viewModel.newPassword = it },
@@ -91,15 +128,15 @@ fun NewPasswordScreen(
                 visualTransformation = if (newPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
                     val image = if (newPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                    IconButton(onClick = { newPasswordVisible = !newPasswordVisible }){
-                        Icon(imageVector  = image, contentDescription = "toggle password visibility")
+                    IconButton(onClick = { newPasswordVisible = !newPasswordVisible }) {
+                        Icon(imageVector = image, contentDescription = "toggle password visibility")
                     }
                 }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Confirm New password", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = Color.Gray)
+            Text("Confirmar contraseña", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = Color.Gray)
             OutlinedTextField(
                 value = viewModel.confirmPassword,
                 onValueChange = { viewModel.confirmPassword = it },
@@ -108,8 +145,8 @@ fun NewPasswordScreen(
                 visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
                     val image = if (confirmPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                    IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }){
-                        Icon(imageVector  = image, contentDescription = "toggle password visibility")
+                    IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                        Icon(imageVector = image, contentDescription = "toggle password visibility")
                     }
                 }
             )
@@ -118,6 +155,7 @@ fun NewPasswordScreen(
 
             Button(
                 onClick = { viewModel.createNewPassword() },
+                enabled = uiState != NewPasswordUiState.Loading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -127,7 +165,7 @@ fun NewPasswordScreen(
                 if (uiState == NewPasswordUiState.Loading) {
                     CircularProgressIndicator(color = Color.White)
                 } else {
-                    Text("Create New Password", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("Guardar nueva contraseña", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
             }
         }

@@ -145,7 +145,7 @@ class AuthViewModel @Inject constructor(
             } catch (e: HttpException) {
                 errorMessage = "Credenciales inválidas. Verifica tu email y contraseña."
             } catch (e: IOException) {
-                errorMessage = "Error de conexión: No se pudo conectar al servidor."
+                errorMessage = "Error de conexión: verifica que el backend esté activo y que API_BASE_URL sea correcta (${e.localizedMessage ?: "sin detalle"})."
             } catch (e: Exception) {
                 errorMessage = "Ocurrió un error inesperado al iniciar sesión."
             } finally {

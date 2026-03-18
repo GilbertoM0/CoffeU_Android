@@ -2,6 +2,7 @@ package com.example.coffeu.di
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.example.coffeu.BuildConfig
 import com.example.coffeu.data.api.AuthService
 import dagger.Module
 import dagger.Provides
@@ -45,7 +46,7 @@ object AppModule {
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:8000/")
+            .baseUrl(BuildConfig.API_BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
