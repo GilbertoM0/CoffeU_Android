@@ -1,5 +1,6 @@
 package com.example.coffeu.ui.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,6 +17,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -27,6 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.coffeu.R
 import com.example.coffeu.ui.theme.CoffeUTheme
 import com.example.coffeu.ui.viewmodel.AuthViewModel
 
@@ -34,9 +39,8 @@ import com.example.coffeu.ui.viewmodel.AuthViewModel
 fun RegisterScreen(
     onRegistrationSuccess: () -> Unit,
     onNavigateToLogin: () -> Unit = {},
-    authViewModel: AuthViewModel = viewModel() // Obtener el ViewModel
+    authViewModel: AuthViewModel = viewModel()
 ) {
-    // Estados locales para los campos de texto
     var email by remember { mutableStateOf("") }
     var nombreUsuario by remember { mutableStateOf("") }
     var telefonoCelular by remember { mutableStateOf("") }
@@ -45,118 +49,148 @@ fun RegisterScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var password2Visible by remember { mutableStateOf(false) }
 
-    // --- ESTADOS DEL VIEWMODEL (OBSERVABLES) ---
     val isLoading = authViewModel.isLoading
     val errorMessage = authViewModel.errorMessage
     val registerSuccess = authViewModel.registerSuccess
 
-    // 1. Efecto: Reaccionar al registro exitoso (navegación)
     LaunchedEffect(registerSuccess) {
         if (registerSuccess) {
-            authViewModel.resetRegisterState() // Limpiar el estado
-            onRegistrationSuccess() // Navegar a Login (callback de AppNavigation)
+            authViewModel.resetRegisterState()
+            onRegistrationSuccess()
         }
     }
 
-    // 2. Efecto: Limpiar el error cuando los campos cambian (Opcional, pero útil para UX)
     LaunchedEffect(email, password, password2) {
-        authViewModel.updateErrorMessage(null) // Usamos la función corregida
+        authViewModel.updateErrorMessage(null)
     }
 
-    // Usaremos un Box para centrar el contenido y establecer el fondo
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+        modifier = Modifier.fillMaxSize()
     ) {
+        // 1. IMAGEN DE FONDO FIJA
+        Image(
+            painter = painterResource(id = R.drawable.fondo),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+
+        // 2. CAPA DE CONTRASTE OSCURA
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f))
+        )
+
+        // 3. CONTENIDO EN LAZYCOLUMN (Para que se pueda scrollear)
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 48.dp),
+                .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Top
         ) {
             item {
+                Spacer(modifier = Modifier.height(64.dp))
+
                 // --- Encabezado ---
-                Spacer(modifier = Modifier.height(32.dp))
                 Text(
                     text = "Crea tu cuenta",
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = Color.White
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Únete a CoffeU y disfruta de nuestros beneficios",
+                    text = "Únete a CasaGamu y disfruta de nuestros beneficios",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+                    color = Color.White.copy(alpha = 0.8f)
                 )
 
-                Spacer(modifier = Modifier.height(48.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
-                // --- Campos de Texto (MANTENIDOS) ---
+                // --- Campos de Texto con fondo para legibilidad ---
+                val textFieldColors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color.White.copy(alpha = 0.9f),
+                    unfocusedContainerColor = Color.White.copy(alpha = 0.8f),
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                    focusedLabelColor = Color.White,
+                    unfocusedLabelColor = Color.White.copy(alpha = 0.7f)
+                )
+
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text("Correo Electrónico") },
-                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Email") },
+                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = textFieldColors
                 )
+
                 Spacer(modifier = Modifier.height(16.dp))
+
                 OutlinedTextField(
                     value = nombreUsuario,
                     onValueChange = { nombreUsuario = it },
                     label = { Text("Nombre de Usuario") },
-                    leadingIcon = { Icon(Icons.Default.Person, contentDescription = "Nombre de Usuario") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                    leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = textFieldColors
                 )
+
                 Spacer(modifier = Modifier.height(16.dp))
+
                 OutlinedTextField(
                     value = telefonoCelular,
                     onValueChange = { telefonoCelular = it },
                     label = { Text("Teléfono Celular") },
-                    leadingIcon = { Icon(Icons.Default.Phone, contentDescription = "Teléfono Celular") },
+                    leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = textFieldColors
                 )
+
                 Spacer(modifier = Modifier.height(16.dp))
+
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
                     label = { Text("Contraseña") },
-                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Contraseña") },
+                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     trailingIcon = {
-                        val image = if (passwordVisible) Icons.Filled.Lock else Icons.Filled.Lock
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(imageVector = image, contentDescription = "Toggle password visibility")
+                            Icon(imageVector = Icons.Filled.Lock, contentDescription = null)
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = textFieldColors
                 )
+
                 Spacer(modifier = Modifier.height(16.dp))
+
                 OutlinedTextField(
                     value = password2,
                     onValueChange = { password2 = it },
                     label = { Text("Confirmar Contraseña") },
-                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Confirmar Contraseña") },
+                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                     visualTransformation = if (password2Visible) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     trailingIcon = {
-                        val image = if (password2Visible) Icons.Filled.Lock else Icons.Filled.Lock
                         IconButton(onClick = { password2Visible = !password2Visible }) {
-                            Icon(imageVector = image, contentDescription = "Toggle password2 visibility")
+                            Icon(imageVector = Icons.Filled.Lock, contentDescription = null)
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = textFieldColors
                 )
 
                 // Términos y Condiciones
@@ -166,97 +200,68 @@ fun RegisterScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     var checked by remember { mutableStateOf(false) }
-                    Checkbox(checked = checked, onCheckedChange = { checked = it })
-                    Spacer(Modifier.width(8.dp))
+                    Checkbox(
+                        checked = checked,
+                        onCheckedChange = { checked = it },
+                        colors = CheckboxDefaults.colors(uncheckedColor = Color.White, checkedColor = MaterialTheme.colorScheme.primary)
+                    )
                     val annotatedString = buildAnnotatedString {
-                        withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))) {
+                        withStyle(style = SpanStyle(color = Color.White.copy(alpha = 0.8f))) {
                             append("Al registrarte, aceptas nuestros ")
                         }
                         pushStringAnnotation(tag = "URL", annotation = "https://your.terms.url")
-                        withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
+                        withStyle(style = SpanStyle(color = Color.White, fontWeight = FontWeight.Bold)) {
                             append("Términos de Uso")
                         }
                         pop()
                     }
-
                     ClickableText(
                         text = annotatedString,
                         style = MaterialTheme.typography.bodySmall,
-                        onClick = {
-                            // TODO: Lógica para abrir los términos de uso
-                        }
+                        onClick = { /* Acción */ }
                     )
                 }
 
-
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // --- Botón de Registrarse CONECTADO A LA LÓGICA ---
                 Button(
                     onClick = {
-                        // Llama a la función del ViewModel con los datos
-                        authViewModel.attemptRegister(
-                            email = email,
-                            nombre_usuario = nombreUsuario,
-                            telefono_celular = telefonoCelular,
-                            password = password,
-                            password2 = password2
-                        )
+                        authViewModel.attemptRegister(email, nombreUsuario, telefonoCelular, password, password2)
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)
                         .clip(RoundedCornerShape(12.dp)),
-                    enabled = !isLoading, // Deshabilita el botón mientras carga
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
+                    enabled = !isLoading,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     if (isLoading) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                     } else {
-                        Text(
-                            text = "REGISTRARSE",
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        Text(text = "REGISTRARSE", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     }
                 }
 
-                // --- Mostrar Error ---
                 if (errorMessage != null && !isLoading) {
                     Text(
                         text = errorMessage!!,
                         color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(top = 16.dp)
+                        modifier = Modifier.padding(top = 16.dp),
+                        fontWeight = FontWeight.Bold
                     )
                 }
 
-                // Enlace a Iniciar Sesión si ya tienen cuenta
+                // Enlace a Iniciar Sesión
                 Spacer(modifier = Modifier.height(32.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "¿Ya tienes una cuenta?",
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
-                    )
+                    Text(text = "¿Ya tienes una cuenta?", color = Color.White.copy(alpha = 0.8f))
                     Spacer(modifier = Modifier.width(4.dp))
                     TextButton(onClick = onNavigateToLogin) {
-                        Text(
-                            text = "Iniciar sesión",
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        Text(text = "Iniciar sesión", color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
+                Spacer(modifier = Modifier.height(48.dp)) // Espacio final
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun RegisterScreenPreview() {
-    CoffeUTheme {
-        RegisterScreen(onRegistrationSuccess = {})
     }
 }
