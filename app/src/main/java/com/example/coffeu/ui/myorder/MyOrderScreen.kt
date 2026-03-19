@@ -25,10 +25,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.coffeu.R
 import com.example.coffeu.data.model.CartItem
 import com.example.coffeu.ui.viewmodel.AuthViewModel
 import java.text.NumberFormat
@@ -42,7 +44,7 @@ fun MyOrderScreen(authViewModel: AuthViewModel = viewModel()) {
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("My Order") })
+            TopAppBar(title = { Text(stringResource(id = R.string.my_order_title)) })
         }
     ) { paddingValues ->
         if (cartItems.isEmpty()) {
@@ -53,7 +55,7 @@ fun MyOrderScreen(authViewModel: AuthViewModel = viewModel()) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Your cart is empty.", style = MaterialTheme.typography.headlineSmall)
+                Text(stringResource(id = R.string.my_order_empty_cart), style = MaterialTheme.typography.headlineSmall)
             }
         } else {
             Column(
@@ -127,7 +129,7 @@ fun OrderSummary(total: Double) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Total:", style = MaterialTheme.typography.headlineSmall)
+            Text(stringResource(id = R.string.my_order_total_label), style = MaterialTheme.typography.headlineSmall)
             val format = NumberFormat.getCurrencyInstance(Locale.US)
             Text(
                 format.format(total),
@@ -140,7 +142,7 @@ fun OrderSummary(total: Double) {
             onClick = { /* TODO: Checkout logic */ },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Checkout")
+            Text(stringResource(id = R.string.my_order_checkout_button))
         }
     }
 }

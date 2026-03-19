@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -95,14 +96,14 @@ fun RegisterScreen(
 
                 // --- Encabezado ---
                 Text(
-                    text = "Crea tu cuenta",
+                    text = stringResource(id = R.string.register_title),
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Únete a CasaGamu y disfruta de nuestros beneficios",
+                    text = stringResource(id = R.string.register_subtitle),
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color.White.copy(alpha = 0.8f)
                 )
@@ -122,7 +123,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = { Text("Correo Electrónico") },
+                    label = { Text(stringResource(id = R.string.label_email)) },
                     leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     modifier = Modifier.fillMaxWidth(),
@@ -135,7 +136,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = nombreUsuario,
                     onValueChange = { nombreUsuario = it },
-                    label = { Text("Nombre de Usuario") },
+                    label = { Text(stringResource(id = R.string.label_username)) },
                     leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -147,7 +148,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = telefonoCelular,
                     onValueChange = { telefonoCelular = it },
-                    label = { Text("Teléfono Celular") },
+                    label = { Text(stringResource(id = R.string.label_phone_number)) },
                     leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     modifier = Modifier.fillMaxWidth(),
@@ -160,7 +161,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("Contraseña") },
+                    label = { Text(stringResource(id = R.string.label_password)) },
                     leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -179,7 +180,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = password2,
                     onValueChange = { password2 = it },
-                    label = { Text("Confirmar Contraseña") },
+                    label = { Text(stringResource(id = R.string.label_confirm_password)) },
                     leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                     visualTransformation = if (password2Visible) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -205,13 +206,15 @@ fun RegisterScreen(
                         onCheckedChange = { checked = it },
                         colors = CheckboxDefaults.colors(uncheckedColor = Color.White, checkedColor = MaterialTheme.colorScheme.primary)
                     )
+                    val termsPrefix = stringResource(id = R.string.register_terms_prefix)
+                    val termsLink = stringResource(id = R.string.register_terms_link)
                     val annotatedString = buildAnnotatedString {
                         withStyle(style = SpanStyle(color = Color.White.copy(alpha = 0.8f))) {
-                            append("Al registrarte, aceptas nuestros ")
+                            append(termsPrefix)
                         }
                         pushStringAnnotation(tag = "URL", annotation = "https://your.terms.url")
                         withStyle(style = SpanStyle(color = Color.White, fontWeight = FontWeight.Bold)) {
-                            append("Términos de Uso")
+                            append(termsLink)
                         }
                         pop()
                     }
@@ -238,7 +241,7 @@ fun RegisterScreen(
                     if (isLoading) {
                         CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                     } else {
-                        Text(text = "REGISTRARSE", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Text(text = stringResource(id = R.string.register_button), color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -254,10 +257,10 @@ fun RegisterScreen(
                 // Enlace a Iniciar Sesión
                 Spacer(modifier = Modifier.height(32.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "¿Ya tienes una cuenta?", color = Color.White.copy(alpha = 0.8f))
+                    Text(text = stringResource(id = R.string.register_already_have_account), color = Color.White.copy(alpha = 0.8f))
                     Spacer(modifier = Modifier.width(4.dp))
                     TextButton(onClick = onNavigateToLogin) {
-                        Text(text = "Iniciar sesión", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(text = stringResource(id = R.string.register_login_link), color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
                 Spacer(modifier = Modifier.height(48.dp)) // Espacio final

@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -21,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.coffeu.R
 import com.example.coffeu.ui.theme.CoffeUTheme
 import com.example.coffeu.ui.viewmodel.AuthViewModel
 import kotlinx.coroutines.delay
@@ -49,28 +51,28 @@ fun VerifyCodeScreen(
                 title = { },
                 navigationIcon = {
                     IconButton(onClick = onBackClicked) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         }
-    ) {
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(it)
+                .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.background)
                 .padding(16.dp)
         ) {
             Text(
-                text = "Verify Code",
+                text = stringResource(id = R.string.verify_title),
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Please enter the code we just sent to your number (907) 555-0101",
+                text = stringResource(id = R.string.verify_subtitle, "(907) 555-0101"),
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.Gray
             )
@@ -81,7 +83,7 @@ fun VerifyCodeScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Resend code in 00:${String.format("%02d", seconds)}",
+                text = stringResource(id = R.string.verify_resend_label, seconds),
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -97,7 +99,7 @@ fun VerifyCodeScreen(
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("Continue", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(stringResource(id = R.string.common_continue), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
         }
     }
@@ -143,13 +145,5 @@ private fun OtpChar(char: Char?, hasFocus: Boolean) {
         char?.let {
             Text(text = it.toString(), fontSize = 20.sp, textAlign = TextAlign.Center)
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun VerifyCodeScreenPreview() {
-    CoffeUTheme {
-        VerifyCodeScreen(onBackClicked = {}, onVerificationSuccess = {})
     }
 }

@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -81,6 +82,7 @@ fun LoginContent(
     var identificador by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Box(modifier = Modifier.fillMaxSize()) {
         // 1. IMAGEN DE FONDO
@@ -114,14 +116,14 @@ fun LoginContent(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Bienvenido de vuelta",
+                text = stringResource(id = R.string.login_welcome_back),
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.ExtraBold,
                 color = Color.White
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Inicia sesión para continuar con CasaGamu",
+                text = stringResource(id = R.string.login_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.White.copy(alpha = 0.7f)
             )
@@ -132,7 +134,7 @@ fun LoginContent(
             OutlinedTextField(
                 value = identificador,
                 onValueChange = { identificador = it },
-                label = { Text("Teléfono Celular", color = Color.White.copy(alpha = 0.7f)) },
+                label = { Text(stringResource(id = R.string.label_phone_number), color = Color.White.copy(alpha = 0.7f)) },
                 leadingIcon = { Icon(Icons.Default.Call, contentDescription = null, tint = Color.White) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 modifier = Modifier.fillMaxWidth(),
@@ -153,7 +155,7 @@ fun LoginContent(
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Contraseña", color = Color.White.copy(alpha = 0.7f)) },
+                label = { Text(stringResource(id = R.string.label_password), color = Color.White.copy(alpha = 0.7f)) },
                 leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = Color.White) },
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -183,17 +185,18 @@ fun LoginContent(
                 onClick = { /* Acción */ },
                 modifier = Modifier.align(Alignment.End)
             ) {
-                Text("¿Olvidaste tu contraseña?", color = Color.White.copy(alpha = 0.8f))
+                Text(stringResource(id = R.string.login_forgot_password), color = Color.White.copy(alpha = 0.8f))
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            val errorEmptyFields = stringResource(id = R.string.login_error_empty_fields)
             Button(
                 onClick = {
                     if (identificador.isNotBlank() && password.isNotBlank()) {
                         onLoginClick(identificador, password)
                     } else {
-                        onUpdateError("Por favor, introduce tu telefono y contraseña.")
+                        onUpdateError(errorEmptyFields)
                     }
                 },
                 modifier = Modifier
@@ -210,7 +213,7 @@ fun LoginContent(
                 if (isLoading) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                 } else {
-                    Text("INICIAR SESIÓN", fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                    Text(stringResource(id = R.string.login_button), fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                 }
             }
 
@@ -226,9 +229,9 @@ fun LoginContent(
 
             Spacer(modifier = Modifier.height(32.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("¿No tienes una cuenta?", color = Color.White.copy(alpha = 0.7f))
+                Text(stringResource(id = R.string.login_no_account), color = Color.White.copy(alpha = 0.7f))
                 TextButton(onClick = onNavigateToRegister) {
-                    Text("Regístrate", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(stringResource(id = R.string.login_register_link), color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
         }

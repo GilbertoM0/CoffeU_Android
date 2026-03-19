@@ -15,12 +15,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.coffeu.R
 import com.example.coffeu.data.model.NotificationItem
 import com.example.coffeu.ui.theme.CoffeUTheme
 import com.example.coffeu.ui.viewmodel.AuthViewModel
@@ -37,10 +39,10 @@ fun NotificationsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Notifications", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(id = R.string.notifications_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClicked) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -62,7 +64,7 @@ fun NotificationsScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No tienes notificaciones todavía.",
+                        text = stringResource(id = R.string.notifications_empty),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -153,13 +155,5 @@ fun NotificationCard(
                 )
             }
         }
-    }
-}
-
-@Preview(showBackground = true, name = "Light Mode")
-@Composable
-fun NotificationsScreenPreview() {
-    CoffeUTheme {
-        NotificationsScreen(onBackClicked = {})
     }
 }

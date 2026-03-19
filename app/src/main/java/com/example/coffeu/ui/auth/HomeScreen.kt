@@ -5,12 +5,10 @@ import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -27,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,8 +38,6 @@ import com.example.coffeu.data.model.Kitchen
 import com.example.coffeu.ui.theme.CoffeUTheme
 import com.example.coffeu.ui.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
-
-data class FoodCategory(val id: Int, val name: String, val icon: Int)
 
 @Composable
 fun HomeScreen(
@@ -78,6 +75,7 @@ fun HomeScreen(
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -88,13 +86,6 @@ fun HomeScreen(
                 onMyOrderClicked = onNavigateToMyOrder
             )
         },
-
-        /*AQUI Estaba El Boton de Añadir productos*/
-        /*floatingActionButton = {
-            FloatingActionButton(onClick = onNavigateToAddProduct) {
-                Icon(Icons.Default.Add, contentDescription = "Add Product")
-            }
-        },*/
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         LazyColumn(
@@ -120,7 +111,7 @@ fun HomeScreen(
             }
 
             item {
-                KitchensHeader(title = "Cocina cerca de ti", onSeeAllClicked = onNavigateToAllProducts)
+                KitchensHeader(title = stringResource(id = R.string.home_kitchens_near_you), onSeeAllClicked = onNavigateToAllProducts)
             }
 
             item {
@@ -137,7 +128,7 @@ fun HomeScreen(
                     }
                     error != null -> {
                         Text(
-                            text = "Error de carga: $error",
+                            text = stringResource(id = R.string.home_load_error, error),
                             color = MaterialTheme.colorScheme.error,
                             modifier = Modifier.padding(16.dp)
                         )
@@ -159,7 +150,8 @@ fun HomeScreen(
                                     onToggleFavorite = {
                                         authViewModel.toggleFavorite(kitchen)
                                         scope.launch {
-                                            snackbarHostState.showSnackbar("${kitchen.name ?: "Producto"} ha sido añadido a favoritos")
+                                            val message = context.getString(R.string.home_added_to_favorites, kitchen.name ?: "Producto")
+                                            snackbarHostState.showSnackbar(message)
                                         }
                                     }
                                 )
@@ -171,7 +163,7 @@ fun HomeScreen(
 
             if (secondRandomKitchens.isNotEmpty()) {
                 item {
-                    KitchensHeader(title = "Más para descubrir", onSeeAllClicked = onNavigateToAllProducts)
+                    KitchensHeader(title = stringResource(id = R.string.home_more_to_discover), onSeeAllClicked = onNavigateToAllProducts)
                 }
                 item {
                     LazyRow(
@@ -190,7 +182,8 @@ fun HomeScreen(
                                 onToggleFavorite = {
                                     authViewModel.toggleFavorite(kitchen)
                                     scope.launch {
-                                        snackbarHostState.showSnackbar("${kitchen.name ?: "Producto"} ha sido añadido a favoritos")
+                                        val message = context.getString(R.string.home_added_to_favorites, kitchen.name ?: "Producto")
+                                        snackbarHostState.showSnackbar(message)
                                     }
                                 }
                             )
@@ -236,7 +229,7 @@ fun HomeHeader(
             Spacer(modifier = Modifier.width(8.dp))
             Column {
                 Text(
-                    text = "Hola, ${userName}",
+                    text = stringResource(id = R.string.home_greeting, userName),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.SemiBold
@@ -304,7 +297,7 @@ fun SearchBar(onClick: () -> Unit) {
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = "Buscar comida..",
+            text = stringResource(id = R.string.home_search_placeholder),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodyLarge
         )
@@ -339,13 +332,13 @@ fun PromoBanner() {
                 .padding(24.dp)
         ) {
             Text(
-                text = "HASTA 30% DE DESCUENTO",
+                text = stringResource(id = R.string.promo_discount_title),
                 color = Color.White,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Black
             )
             Text(
-                text = "EN EL PRIMER PEDIDO",
+                text = stringResource(id = R.string.promo_discount_subtitle),
                 color = Color.White,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Black
@@ -357,7 +350,7 @@ fun PromoBanner() {
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary)
             ) {
                 Text(
-                    text = "Ordenar Ahora",
+                    text = stringResource(id = R.string.promo_order_now),
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
                 )
@@ -383,7 +376,7 @@ fun KitchensHeader(title: String, onSeeAllClicked: () -> Unit = {}) {
         )
         TextButton(onClick = onSeeAllClicked) {
             Text(
-                text = "Mostrar todo",
+                text = stringResource(id = R.string.home_see_all),
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.SemiBold
             )
@@ -508,19 +501,19 @@ fun HomeBottomBar(onProfileClicked: () -> Unit, onFavoritesClicked: () -> Unit, 
         tonalElevation = 8.dp
     ) {
         val navItems = listOf(
-            Pair("Home", Icons.Filled.Home),
-            Pair("My Order", Icons.Filled.ShoppingCart),
-            Pair("Favorites", Icons.Filled.Favorite),
-            Pair("Profile", Icons.Filled.Person)
+            Triple(stringResource(id = R.string.nav_home), Icons.Filled.Home, "Home"),
+            Triple(stringResource(id = R.string.nav_my_order), Icons.Filled.ShoppingCart, "My Order"),
+            Triple(stringResource(id = R.string.nav_favorites), Icons.Filled.Favorite, "Favorites"),
+            Triple(stringResource(id = R.string.nav_profile), Icons.Filled.Person, "Profile")
         )
-        val selectedItem = navItems.first().first
+        val selectedItem = "Home"
 
-        navItems.forEach { (label, icon) ->
-            val isSelected = label == selectedItem
+        navItems.forEach { (label, icon, key) ->
+            val isSelected = key == selectedItem
             NavigationBarItem(
                 selected = isSelected,
                 onClick = {
-                    when (label) {
+                    when (key) {
                         "Profile" -> onProfileClicked()
                         "Favorites" -> onFavoritesClicked()
                         "My Order" -> onMyOrderClicked()

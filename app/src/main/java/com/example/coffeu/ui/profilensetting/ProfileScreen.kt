@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -39,6 +40,7 @@ fun ProfileScreen(
     onNavigateToEditProfile: () -> Unit = {},
     onNavigateToNotifications: () -> Unit = {},
     onNavigateToChangePassword: () -> Unit = {},
+    onNavigateToEditLanguage: () -> Unit = {},
     onLogout: () -> Unit
 ) {
     val context = LocalContext.current
@@ -50,10 +52,10 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Profile", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(id = R.string.profile_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClicked) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -100,7 +102,7 @@ fun ProfileScreen(
             // General Section
             item {
                 Text(
-                    text = "General",
+                    text = stringResource(id = R.string.profile_section_general),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
@@ -109,16 +111,16 @@ fun ProfileScreen(
                     color = MaterialTheme.colorScheme.onBackground
                 )
             }
-            item { ProfileMenuItem(icon = Icons.Default.Person, text = "Edit Profile", onClick = onNavigateToEditProfile) }
-            item { ProfileMenuItem(icon = Icons.Default.Lock, text = "Change Password", onClick = onNavigateToChangePassword) }
-            item { ProfileMenuItem(icon = Icons.Default.Notifications, text = "Notifications", onClick = onNavigateToNotifications) }
-            item { ProfileMenuItem(icon = Icons.Default.Settings, text = "Security") {} }
-            item { ProfileMenuItem(icon = Icons.Default.Info, text = "Language") {} }
+            item { ProfileMenuItem(icon = Icons.Default.Person, text = stringResource(id = R.string.profile_menu_edit_profile), onClick = onNavigateToEditProfile) }
+            item { ProfileMenuItem(icon = Icons.Default.Lock, text = stringResource(id = R.string.profile_menu_change_password), onClick = onNavigateToChangePassword) }
+            item { ProfileMenuItem(icon = Icons.Default.Notifications, text = stringResource(id = R.string.profile_menu_notifications), onClick = onNavigateToNotifications) }
+            item { ProfileMenuItem(icon = Icons.Default.Settings, text = stringResource(id = R.string.profile_menu_security)) {} }
+            item { ProfileMenuItem(icon = Icons.Default.Info, text = stringResource(id = R.string.profile_menu_language), onClick = onNavigateToEditLanguage) }
 
             // Logout Section
             item {
                 Spacer(modifier = Modifier.height(16.dp))
-                ProfileMenuItem(icon = Icons.AutoMirrored.Filled.Logout, text = "Cerrar Sesión", onClick = onLogout)
+                ProfileMenuItem(icon = Icons.AutoMirrored.Filled.Logout, text = stringResource(id = R.string.profile_menu_logout), onClick = onLogout)
             }
         }
     }
@@ -126,6 +128,7 @@ fun ProfileScreen(
 
 @Composable
 fun ProfileMenuItem(icon: ImageVector, text: String, onClick: () -> Unit) {
+    val logoutText = stringResource(id = R.string.profile_menu_logout)
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -142,16 +145,16 @@ fun ProfileMenuItem(icon: ImageVector, text: String, onClick: () -> Unit) {
             Icon(
                 imageVector = icon,
                 contentDescription = text,
-                tint = if (text == "Cerrar Sesión") Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
+                tint = if (text == logoutText) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.width(16.dp))
             Text(
                 text = text,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.weight(1f),
-                color = if (text == "Cerrar Sesión") Color.Red else MaterialTheme.colorScheme.onSurface
+                color = if (text == logoutText) Color.Red else MaterialTheme.colorScheme.onSurface
             )
-            if (text != "Cerrar Sesión") {
+            if (text != logoutText) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = "Go to $text",
@@ -167,22 +170,6 @@ fun ProfileMenuItem(icon: ImageVector, text: String, onClick: () -> Unit) {
 @Composable
 fun ProfileScreenPreview() {
     CoffeUTheme {
-        ProfileScreen(
-            userName = "Lucas Nathan",
-            userEmail = "wilson@09gail.com",
-            onBackClicked = {},
-            onNavigateToEditProfile = {},
-            onNavigateToNotifications = {},
-            onNavigateToChangePassword = {},
-            onLogout = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Dark Mode")
-@Composable
-fun ProfileScreenDarkPreview() {
-    CoffeUTheme(darkTheme = true) {
         ProfileScreen(
             userName = "Lucas Nathan",
             userEmail = "wilson@09gail.com",

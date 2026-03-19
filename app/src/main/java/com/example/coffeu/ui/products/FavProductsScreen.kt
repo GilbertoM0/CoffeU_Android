@@ -26,11 +26,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.coffeu.data.model.Kitchen
+import com.example.coffeu.R
 import com.example.coffeu.ui.theme.CoffeUTheme
 import com.example.coffeu.ui.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
@@ -45,15 +47,16 @@ fun FavProductsScreen(
     val favoriteKitchens = authViewModel.favoriteKitchens
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Favorites", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(id = R.string.favorites_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClicked) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -75,7 +78,7 @@ fun FavProductsScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No tienes productos favoritos todavía.",
+                        text = stringResource(id = R.string.favorites_empty),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -94,7 +97,8 @@ fun FavProductsScreen(
                             onAddToCartClicked = {
                                 authViewModel.addToCart(kitchen)
                                 scope.launch {
-                                    snackbarHostState.showSnackbar("${kitchen.name ?: "Producto"} ha sido añadido al carrito")
+                                    val message = context.getString(R.string.common_added_to_cart, kitchen.name ?: "Producto")
+                                    snackbarHostState.showSnackbar(message)
                                 }
                             }
                         )
@@ -102,21 +106,5 @@ fun FavProductsScreen(
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true, name = "Light Mode")
-@Composable
-fun FavProductsScreenPreview() {
-    CoffeUTheme {
-        FavProductsScreen(onBackClicked = {}, onProductClicked = {})
-    }
-}
-
-@Preview(showBackground = true, name = "Dark Mode")
-@Composable
-fun FavProductsScreenDarkPreview() {
-    CoffeUTheme(darkTheme = true) {
-        FavProductsScreen(onBackClicked = {}, onProductClicked = {})
     }
 }

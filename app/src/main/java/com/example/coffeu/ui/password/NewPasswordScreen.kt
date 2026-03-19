@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -19,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.coffeu.R
 import com.example.coffeu.ui.theme.CoffeUTheme
 import com.example.coffeu.ui.viewmodel.NewPasswordUiState
 import com.example.coffeu.ui.viewmodel.NewPasswordViewModel
@@ -71,6 +73,7 @@ fun NewPasswordScreenContent(
     var confirmPasswordVisible by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val msgOtpSent = stringResource(id = R.string.msg_otp_sent_success)
     LaunchedEffect(uiState) {
         when (val state = uiState) {
             is NewPasswordUiState.Error -> {
@@ -78,7 +81,7 @@ fun NewPasswordScreenContent(
                 onResetState()
             }
             NewPasswordUiState.OtpSent -> {
-                snackbarHostState.showSnackbar("OTP enviado correctamente. Revisa tu correo o teléfono.")
+                snackbarHostState.showSnackbar(msgOtpSent)
                 onResetState()
             }
             NewPasswordUiState.Success -> {
@@ -95,7 +98,7 @@ fun NewPasswordScreenContent(
                 title = { },
                 navigationIcon = {
                     IconButton(onClick = onBackClicked) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
@@ -110,13 +113,13 @@ fun NewPasswordScreenContent(
                 .padding(16.dp)
         ) {
             Text(
-                text = "Restablecer contraseña",
+                text = stringResource(id = R.string.reset_password_title),
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Ingresa correo/teléfono, solicita OTP y luego crea tu nueva contraseña.",
+                text = stringResource(id = R.string.reset_password_subtitle),
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.Gray
             )
@@ -125,7 +128,7 @@ fun NewPasswordScreenContent(
             OutlinedTextField(
                 value = identifier,
                 onValueChange = onIdentifierChange,
-                label = { Text("Correo o teléfono") },
+                label = { Text(stringResource(id = R.string.label_identifier)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
@@ -139,7 +142,7 @@ fun NewPasswordScreenContent(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Enviar OTP")
+                Text(stringResource(id = R.string.button_send_otp))
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -147,7 +150,7 @@ fun NewPasswordScreenContent(
             OutlinedTextField(
                 value = otp,
                 onValueChange = onOtpChange,
-                label = { Text("OTP") },
+                label = { Text(stringResource(id = R.string.label_otp)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
@@ -155,7 +158,7 @@ fun NewPasswordScreenContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Nueva contraseña", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = Color.Gray)
+            Text(stringResource(id = R.string.label_new_password), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = Color.Gray)
             OutlinedTextField(
                 value = newPassword,
                 onValueChange = onNewPasswordChange,
@@ -172,7 +175,7 @@ fun NewPasswordScreenContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Confirmar contraseña", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = Color.Gray)
+            Text(stringResource(id = R.string.label_confirm_password), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = Color.Gray)
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = onConfirmPasswordChange,
@@ -201,32 +204,9 @@ fun NewPasswordScreenContent(
                 if (uiState == NewPasswordUiState.Loading) {
                     CircularProgressIndicator(color = Color.White)
                 } else {
-                    Text("Guardar nueva contraseña", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(stringResource(id = R.string.button_save_new_password), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun NewPasswordScreenPreview() {
-    CoffeUTheme {
-        NewPasswordScreenContent(
-            uiState = NewPasswordUiState.Idle,
-            identifier = "",
-            otp = "",
-            newPassword = "",
-            confirmPassword = "",
-            onIdentifierChange = {},
-            onOtpChange = {},
-            onNewPasswordChange = {},
-            onConfirmPasswordChange = {},
-            onBackClicked = {},
-            onRequestOtp = {},
-            onCreatePassword = {},
-            onResetState = {},
-            onCreatePasswordClicked = {}
-        )
     }
 }

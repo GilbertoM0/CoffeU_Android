@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -17,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.coffeu.R
 import com.example.coffeu.ui.theme.CoffeUTheme
 import com.example.coffeu.ui.viewmodel.AuthViewModel
 
@@ -71,10 +73,10 @@ fun AddProductScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Add New Product") },
+                title = { Text(stringResource(id = R.string.add_product_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClicked) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -94,18 +96,18 @@ fun AddProductScreen(
         ) {
             item { Spacer(modifier = Modifier.height(16.dp)) }
 
-            item { TextField(label = "Product Name", value = name, onValueChange = { name = it }) }
-            item { TextField(label = "Description", value = description, onValueChange = { description = it }) }
-            item { TextField(label = "Stock", value = stock, onValueChange = { stock = it }, keyboardType = KeyboardType.Number) }
-            item { TextField(label = "Image URL", value = imageUrl, onValueChange = { imageUrl = it }) }
-            item { TextField(label = "Price", value = price, onValueChange = { price = it }, keyboardType = KeyboardType.Decimal) }
-            item { TextField(label = "Rating", value = rating, onValueChange = { rating = it }, keyboardType = KeyboardType.Decimal) }
-            item { TextField(label = "Review Count", value = reviewCount, onValueChange = { reviewCount = it }, keyboardType = KeyboardType.Number) }
-            item { TextField(label = "Category", value = category, onValueChange = { category = it }) }
-            item { TextField(label = "Size", value = size, onValueChange = { size = it }) }
-            item { TextField(label = "Delivery Time", value = deliveryTime, onValueChange = { deliveryTime = it }) }
-            item { TextField(label = "Distance", value = distance, onValueChange = { distance = it }) }
-            item { TextField(label = "Discount", value = discount, onValueChange = { discount = it }) }
+            item { TextField(label = stringResource(id = R.string.label_product_name), value = name, onValueChange = { name = it }) }
+            item { TextField(label = stringResource(id = R.string.label_description), value = description, onValueChange = { description = it }) }
+            item { TextField(label = stringResource(id = R.string.label_stock), value = stock, onValueChange = { stock = it }, keyboardType = KeyboardType.Number) }
+            item { TextField(label = stringResource(id = R.string.label_image_url), value = imageUrl, onValueChange = { imageUrl = it }) }
+            item { TextField(label = stringResource(id = R.string.label_price), value = price, onValueChange = { price = it }, keyboardType = KeyboardType.Decimal) }
+            item { TextField(label = stringResource(id = R.string.label_rating), value = rating, onValueChange = { rating = it }, keyboardType = KeyboardType.Decimal) }
+            item { TextField(label = stringResource(id = R.string.label_review_count), value = reviewCount, onValueChange = { reviewCount = it }, keyboardType = KeyboardType.Number) }
+            item { TextField(label = stringResource(id = R.string.label_category), value = category, onValueChange = { category = it }) }
+            item { TextField(label = stringResource(id = R.string.label_size), value = size, onValueChange = { size = it }) }
+            item { TextField(label = stringResource(id = R.string.label_delivery_time), value = deliveryTime, onValueChange = { deliveryTime = it }) }
+            item { TextField(label = stringResource(id = R.string.label_distance), value = distance, onValueChange = { distance = it }) }
+            item { TextField(label = stringResource(id = R.string.label_discount), value = discount, onValueChange = { discount = it }) }
 
             item { Spacer(modifier = Modifier.height(24.dp)) }
 
@@ -150,7 +152,7 @@ fun AddProductScreen(
                     if (isLoading) {
                         CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
                     } else {
-                        Text("Add Product", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text(stringResource(id = R.string.add_product_button), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
                 }
             }
@@ -175,12 +177,4 @@ private fun TextField(label: String, value: String, onValueChange: (String) -> U
             focusedLabelColor = MaterialTheme.colorScheme.primary
         )
     )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AddProductScreenPreview() {
-    CoffeUTheme {
-        AddProductScreen(onProductAdded = {}, onBackClicked = {})
-    }
 }

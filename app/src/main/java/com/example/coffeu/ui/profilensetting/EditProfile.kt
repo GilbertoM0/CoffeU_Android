@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -108,9 +109,18 @@ fun EditProfileContent(
 
     // Helper data for dropdowns
     val months = listOf(
-        "01" to "Enero", "02" to "Febrero", "03" to "Marzo", "04" to "Abril",
-        "05" to "Mayo", "06" to "Junio", "07" to "Julio", "08" to "Agosto",
-        "09" to "Septiembre", "10" to "Octubre", "11" to "Noviembre", "12" to "Diciembre"
+        "01" to stringResource(id = R.string.month_jan),
+        "02" to stringResource(id = R.string.month_feb),
+        "03" to stringResource(id = R.string.month_mar),
+        "04" to stringResource(id = R.string.month_apr),
+        "05" to stringResource(id = R.string.month_may),
+        "06" to stringResource(id = R.string.month_jun),
+        "07" to stringResource(id = R.string.month_jul),
+        "08" to stringResource(id = R.string.month_aug),
+        "09" to stringResource(id = R.string.month_sep),
+        "10" to stringResource(id = R.string.month_oct),
+        "11" to stringResource(id = R.string.month_nov),
+        "12" to stringResource(id = R.string.month_dec)
     )
     val currentYear = Calendar.getInstance().get(Calendar.YEAR)
     val years = (currentYear downTo 1900).map { it.toString() }
@@ -132,9 +142,10 @@ fun EditProfileContent(
         }
     }
 
+    val successMsg = stringResource(id = R.string.edit_profile_success_msg)
     LaunchedEffect(updateSuccess) {
         if (updateSuccess) {
-            snackbarHostState.showSnackbar("Perfil actualizado correctamente")
+            snackbarHostState.showSnackbar(successMsg)
             onResetUpdateState()
         }
     }
@@ -150,10 +161,10 @@ fun EditProfileContent(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Personal Data", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(id = R.string.edit_profile_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClicked) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -194,7 +205,7 @@ fun EditProfileContent(
                     shape = CircleShape,
                     containerColor = MaterialTheme.colorScheme.primary
                 ) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit Image", tint = MaterialTheme.colorScheme.onPrimary)
+                    Icon(Icons.Default.Edit, contentDescription = stringResource(id = R.string.edit_profile_edit_image_desc), tint = MaterialTheme.colorScheme.onPrimary)
                 }
             }
 
@@ -203,7 +214,7 @@ fun EditProfileContent(
             OutlinedTextField(
                 value = currentFullName,
                 onValueChange = { currentFullName = it },
-                label = { Text("Full Name") },
+                label = { Text(stringResource(id = R.string.label_full_name)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 enabled = !isLoading
@@ -214,7 +225,7 @@ fun EditProfileContent(
             OutlinedTextField(
                 value = currentEmail,
                 onValueChange = { currentEmail = it },
-                label = { Text("Email") },
+                label = { Text(stringResource(id = R.string.label_email)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 enabled = !isLoading
@@ -225,7 +236,7 @@ fun EditProfileContent(
             OutlinedTextField(
                 value = currentPhoneNumber,
                 onValueChange = { currentPhoneNumber = it },
-                label = { Text("Phone Number") },
+                label = { Text(stringResource(id = R.string.label_phone_number)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 enabled = !isLoading
@@ -235,7 +246,7 @@ fun EditProfileContent(
 
             // Date of Birth Dropdowns
             Text(
-                text = "Fecha de nacimiento",
+                text = stringResource(id = R.string.label_date_of_birth),
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.fillMaxWidth(),
                 fontWeight = FontWeight.Medium
@@ -258,7 +269,7 @@ fun EditProfileContent(
                         value = selectedDay,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Día") },
+                        label = { Text(stringResource(id = R.string.label_day)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dayExpanded) },
                         colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
                         modifier = Modifier.menuAnchor(),
@@ -288,12 +299,12 @@ fun EditProfileContent(
                     onExpandedChange = { monthExpanded = it },
                     modifier = Modifier.weight(1.5f)
                 ) {
-                    val currentMonthName = months.find { it.first == selectedMonth }?.second ?: "Mes"
+                    val currentMonthName = months.find { it.first == selectedMonth }?.second ?: stringResource(id = R.string.label_month)
                     OutlinedTextField(
                         value = currentMonthName,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Mes") },
+                        label = { Text(stringResource(id = R.string.label_month)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = monthExpanded) },
                         colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
                         modifier = Modifier.menuAnchor(),
@@ -326,7 +337,7 @@ fun EditProfileContent(
                         value = selectedYear,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Año") },
+                        label = { Text(stringResource(id = R.string.label_year)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = yearExpanded) },
                         colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
                         modifier = Modifier.menuAnchor(),
@@ -381,29 +392,9 @@ fun EditProfileContent(
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text("Save Changes", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
+                    Text(stringResource(id = R.string.edit_profile_save_button), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true, name = "Light Mode")
-@Composable
-fun EditProfileScreenPreview() {
-    CoffeUTheme {
-        EditProfileContent(
-            fullName = "Lucas Nathan",
-            email = "lucas@09gmail.com",
-            phoneNumber = "308.555.0121",
-            dateOfBirth = "2000-11-24",
-            onBackClicked = {},
-            isLoading = false,
-            updateSuccess = false,
-            errorMessage = null,
-            onUpdateProfile = { _, _, _, _ -> },
-            onResetUpdateState = {},
-            onUpdateErrorMessage = {}
-        )
     }
 }

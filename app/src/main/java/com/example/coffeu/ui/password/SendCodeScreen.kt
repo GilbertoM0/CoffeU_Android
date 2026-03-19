@@ -17,10 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.coffeu.R
 import com.example.coffeu.ui.theme.CoffeUTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,29 +36,29 @@ fun SendCodeScreen(onBackClicked: () -> Unit, onContinueClicked: () -> Unit) {
                 title = { },
                 navigationIcon = {
                     IconButton(onClick = onBackClicked) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.common_back), tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         }
-    ) {
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(it)
+                .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.background)
                 .padding(16.dp)
         ) {
             Text(
-                text = "Forgot Password",
+                text = stringResource(id = R.string.recovery_title),
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Select verification method and we will send a verification code",
+                text = stringResource(id = R.string.recovery_subtitle),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -72,7 +74,7 @@ fun SendCodeScreen(onBackClicked: () -> Unit, onContinueClicked: () -> Unit) {
             Spacer(modifier = Modifier.height(16.dp))
             VerificationMethodCard(
                 icon = Icons.Default.Phone,
-                method = "Phone Number",
+                method = stringResource(id = R.string.label_phone_number),
                 detail = "**** **** **01",
                 isSelected = selectedMethod == "Phone",
                 onSelected = { selectedMethod = "Phone" }
@@ -88,7 +90,7 @@ fun SendCodeScreen(onBackClicked: () -> Unit, onContinueClicked: () -> Unit) {
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("Continue", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onPrimary)
+                Text(stringResource(id = R.string.common_continue), fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onPrimary)
             }
         }
     }
@@ -136,21 +138,5 @@ fun VerificationMethodCard(
             onClick = onSelected,
             colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary, unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
         )
-    }
-}
-
-@Preview(showBackground = true, name = "Light Mode")
-@Composable
-fun SendCodeScreenPreview() {
-    CoffeUTheme {
-        SendCodeScreen(onBackClicked = {}, onContinueClicked = {})
-    }
-}
-
-@Preview(showBackground = true, name = "Dark Mode")
-@Composable
-fun SendCodeScreenDarkPreview() {
-    CoffeUTheme(darkTheme = true) {
-        SendCodeScreen(onBackClicked = {}, onContinueClicked = {})
     }
 }

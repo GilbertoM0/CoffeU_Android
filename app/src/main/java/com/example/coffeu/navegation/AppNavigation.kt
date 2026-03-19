@@ -28,6 +28,7 @@ import com.example.coffeu.ui.profilensetting.ChangePasswordScreen
 import com.example.coffeu.ui.profilensetting.EditProfileScreen
 import com.example.coffeu.ui.notifications.NotificationsScreen
 import com.example.coffeu.ui.profilensetting.ProfileScreen
+import com.example.coffeu.ui.profilensetting.EditLanguageScreen
 import com.example.coffeu.ui.viewmodel.AuthViewModel
 import com.example.coffeu.ui.myorder.MyOrderScreen
 import kotlinx.coroutines.delay
@@ -50,6 +51,7 @@ object Screen {
     const val FavoriteProducts = "favorite_products_screen"
     const val MyOrder = "my_order_screen"
     const val AddProduct = "add_product_screen"
+    const val EditLanguage = "edit_language_screen"
 }
 
 @Composable
@@ -219,6 +221,7 @@ fun AppNavigation(
                     onNavigateToEditProfile = { navController.navigate(Screen.EditProfile) },
                     onNavigateToNotifications = { navController.navigate(Screen.Notifications) },
                     onNavigateToChangePassword = { navController.navigate(Screen.ChangePassword) },
+                    onNavigateToEditLanguage = { navController.navigate(Screen.EditLanguage) },
                     onLogout = {
                         authViewModel.logout()
                         navController.navigate(Screen.Login) {
@@ -272,6 +275,13 @@ fun AppNavigation(
                 onCreateNewPasswordClicked = { _ ->
                     navController.navigate(Screen.NewPassword)
                 }
+            )
+        }
+
+        // --- EDIT LANGUAGE SCREEN ---
+        composable(Screen.EditLanguage) {
+            EditLanguageScreen(
+                onBackClicked = { navController.popBackStack() }
             )
         }
 

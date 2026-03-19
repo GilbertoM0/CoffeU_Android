@@ -20,12 +20,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.coffeu.R
 import com.example.coffeu.data.model.Kitchen
 import com.example.coffeu.ui.theme.CoffeUTheme
 import com.example.coffeu.ui.viewmodel.AuthViewModel
@@ -35,12 +38,13 @@ import kotlinx.coroutines.launch
 @Composable
 fun ProductDetailScreen(
     kitchen: Kitchen,
-    onBackClicked: () -> Unit, // ✅ Acción para volver atrás
+    onBackClicked: () -> Unit,
     authViewModel: AuthViewModel = viewModel()
 ) {
     val isFavorite = authViewModel.isFavorite(kitchen)
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -87,7 +91,7 @@ fun ProductDetailScreen(
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            InfoChip("Envio Gratis")
+                            InfoChip(stringResource(id = R.string.product_free_shipping))
                             InfoChip(kitchen.deliveryTime ?: "")
                             InfoChip(
                                 text = (kitchen.rating ?: 0.0).toString(),
@@ -96,7 +100,7 @@ fun ProductDetailScreen(
                         }
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "Descripcion",
+                            text = stringResource(id = R.string.label_description),
                             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onBackground
                         )
@@ -112,7 +116,7 @@ fun ProductDetailScreen(
 
             // Top Bar overlay
             TopAppBar(
-                title = { Text("Menu Detail", color = Color.White) },
+                title = { Text(stringResource(id = R.string.product_detail_title), color = Color.White) },
                 navigationIcon = {
                     Surface(
                         shape = CircleShape,
@@ -120,8 +124,8 @@ fun ProductDetailScreen(
                         modifier = Modifier.padding(start = 8.dp),
                         color = MaterialTheme.colorScheme.surface
                     ) {
-                        IconButton(onClick = onBackClicked) { // ✅ Conectado
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
+                        IconButton(onClick = onBackClicked) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.common_back), tint = MaterialTheme.colorScheme.onSurface)
                         }
                     }
                 },
@@ -136,9 +140,9 @@ fun ProductDetailScreen(
                             authViewModel.toggleFavorite(kitchen)
                             scope.launch {
                                 val message = if (authViewModel.isFavorite(kitchen)) {
-                                    "${kitchen.name ?: "Producto"} ha sido añadido a favoritos"
+                                    context.getString(R.string.home_added_to_favorites, kitchen.name ?: "Producto")
                                 } else {
-                                    "${kitchen.name ?: "Producto"} ha sido eliminado de favoritos"
+                                    context.getString(R.string.product_removed_from_favorites, kitchen.name ?: "Producto")
                                 }
                                 snackbarHostState.showSnackbar(message)
                             }
@@ -193,7 +197,8 @@ fun ProductDetailScreen(
                     onClick = {
                         authViewModel.addToCart(kitchen)
                         scope.launch {
-                            snackbarHostState.showSnackbar("${kitchen.name ?: "Producto"} ha sido añadido al carrito")
+                            val message = context.getString(R.string.common_added_to_cart, kitchen.name ?: "Producto")
+                            snackbarHostState.showSnackbar(message)
                         }
                     },
                     shape = RoundedCornerShape(16.dp),
@@ -202,7 +207,7 @@ fun ProductDetailScreen(
                 ) {
                     Icon(Icons.Default.ShoppingCart, contentDescription = null)
                     Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
-                    Text("Agregar al carrito")
+                    Text(stringResource(id = R.string.common_add_to_cart))
                 }
             }
         }
@@ -221,52 +226,5 @@ fun InfoChip(text: String, icon: @Composable (() -> Unit)? = null) {
     ) {
         icon?.invoke()
         Text(text = text, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), fontWeight = FontWeight.SemiBold)
-    }
-}
-
-
-@Preview(showBackground = true, name = "Light Mode")
-@Composable
-fun ProductDetailScreenPreview() {
-    CoffeUTheme {
-        val sampleKitchen = Kitchen(
-            id = 1,
-            name = "Classic Cheese Pizza with extra cheese and pepperoni",
-            description = "Burger With Meat is a typical food from our restaurant that is much in demand by many people, this is very recommended for you",
-            stock = 10,
-            imageUrl = "",
-            price = "20.00",
-            rating = 4.5,
-            reviewCount = 120,
-            category = "tablas",
-            size = "Mediano",
-            deliveryTime = "20-30 min",
-            distance = "1.2km",
-            discount = "10%"
-        )
-        ProductDetailScreen(kitchen = sampleKitchen, onBackClicked = {}) // ✅ Preview actualizado
-    }
-}
-
-@Preview(showBackground = true, name = "Dark Mode")
-@Composable
-fun ProductDetailScreenDarkPreview() {
-    CoffeUTheme(darkTheme = true) {
-        val sampleKitchen = Kitchen(
-            id = 1,
-            name = "Classic Cheese Pizza with extra cheese and pepperoni",
-            description = "Burger With Meat is a typical food from our restaurant that is much in demand by many people, this is very recommended for you",
-            stock = 10,
-            imageUrl = "",
-            price = "20.00",
-            rating = 4.5,
-            reviewCount = 120,
-            category = "tablas",
-            size = "Mediano",
-            deliveryTime = "20-30 min",
-            distance = "1.2km",
-            discount = "10%"
-        )
-        ProductDetailScreen(kitchen = sampleKitchen, onBackClicked = {}) // ✅ Preview actualizado
     }
 }

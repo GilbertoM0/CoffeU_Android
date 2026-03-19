@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
@@ -26,12 +25,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.coffeu.R
 import com.example.coffeu.data.model.Kitchen
 import com.example.coffeu.ui.theme.CoffeUTheme
 import com.example.coffeu.ui.viewmodel.AuthViewModel
@@ -57,6 +59,7 @@ fun AllProductsScreen(
     var searchText by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     val filteredKitchens by remember(searchText, allKitchens) {
         derivedStateOf {
@@ -74,10 +77,10 @@ fun AllProductsScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Search", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(id = R.string.search_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClicked) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -97,8 +100,8 @@ fun AllProductsScreen(
             OutlinedTextField(
                 value = searchText,
                 onValueChange = { searchText = it },
-                placeholder = { Text("Search for Food..") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+                placeholder = { Text(stringResource(id = R.string.search_placeholder)) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = stringResource(id = R.string.common_search)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -115,7 +118,7 @@ fun AllProductsScreen(
                 error != null -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = "Error de carga: $error",
+                            text = stringResource(id = R.string.home_load_error, error),
                             color = MaterialTheme.colorScheme.error,
                         )
                     }
@@ -134,7 +137,8 @@ fun AllProductsScreen(
                                 onAddToCartClicked = {
                                     authViewModel.addToCart(kitchen)
                                     scope.launch {
-                                        snackbarHostState.showSnackbar("${kitchen.name ?: "Producto"} ha sido añadido al carrito")
+                                        val message = context.getString(R.string.common_added_to_cart, kitchen.name ?: "Producto")
+                                        snackbarHostState.showSnackbar(message)
                                     }
                                 }
                             )
@@ -182,7 +186,11 @@ fun ProductRowItem(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Star, contentDescription = "Rating", tint = Color(0xFFFFC107), modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("${kitchen.rating ?: 0.0} (${kitchen.reviewCount ?: 0} Reviews)", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    text = stringResource(id = R.string.product_rating_reviews, kitchen.rating ?: 0.0, kitchen.reviewCount ?: 0),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = "$${kitchen.price ?: "0.00"}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, fontSize = 18.sp)
@@ -197,23 +205,7 @@ fun ProductRowItem(
         ) {
             Icon(Icons.Default.ShoppingCart, contentDescription = null)
             Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
-            Text("Agregar al carrito")
+            Text(stringResource(id = R.string.common_add_to_cart))
         }
-    }
-}
-
-@Preview(showBackground = true, name = "Light Mode")
-@Composable
-fun AllProductsScreenPreview() {
-    CoffeUTheme {
-        AllProductsScreen(onBackClicked = {}, onProductClicked = {})
-    }
-}
-
-@Preview(showBackground = true, name = "Dark Mode")
-@Composable
-fun AllProductsScreenDarkPreview() {
-    CoffeUTheme(darkTheme = true) {
-        AllProductsScreen(onBackClicked = {}, onProductClicked = {})
     }
 }

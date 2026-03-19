@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -32,26 +33,8 @@ import kotlinx.coroutines.launch
 
 private data class OnboardingPage(
     val imageRes: Int,
-    val title: String,
-    val description: String
-)
-
-private val onboardingPages = listOf(
-    OnboardingPage(
-        imageRes = R.drawable.preview_screen1,
-        title = "Descubre Delicias a Cualquier Hora, en Cualquier Lugar",
-        description = "Explora un sinfín de opciones, ordena en segundos y disfruta de una entrega rápida en tu puerta."
-    ),
-    OnboardingPage(
-        imageRes = R.drawable.preview_screen2,
-        title = "Ordena con Facilidad, Cuando Quieras",
-        description = "Descubre nuevos sabores, personaliza tus comidas y sigue tu pedido en tiempo real con facilidad."
-    ),
-    OnboardingPage(
-        imageRes = R.drawable.preview_screen3,
-        title = "Sigue y Disfruta Cada Bocado del Viaje",
-        description = "Desde el desayuno hasta la cena, encuentra tus platos favoritos y recíbelos rápido y frescos."
-    )
+    val titleRes: Int,
+    val descriptionRes: Int
 )
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -59,6 +42,24 @@ private val onboardingPages = listOf(
 fun PreviewScreen(
     onNavigateToLogin: () -> Unit
 ) {
+    val onboardingPages = listOf(
+        OnboardingPage(
+            imageRes = R.drawable.preview_screen1,
+            titleRes = R.string.onboarding_title_1,
+            descriptionRes = R.string.onboarding_desc_1
+        ),
+        OnboardingPage(
+            imageRes = R.drawable.preview_screen2,
+            titleRes = R.string.onboarding_title_2,
+            descriptionRes = R.string.onboarding_desc_2
+        ),
+        OnboardingPage(
+            imageRes = R.drawable.preview_screen3,
+            titleRes = R.string.onboarding_title_3,
+            descriptionRes = R.string.onboarding_desc_3
+        )
+    )
+
     val pagerState = rememberPagerState(pageCount = { onboardingPages.size })
     val scope = rememberCoroutineScope()
     val isLastPage = pagerState.currentPage == onboardingPages.size - 1
@@ -111,7 +112,7 @@ fun PreviewScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryNormal)
                 ) {
                     Text(
-                        text = if (isLastPage) "Comenzar" else "Siguiente",
+                        text = if (isLastPage) stringResource(id = R.string.onboarding_start_button) else stringResource(id = R.string.onboarding_next_button),
                         fontWeight = FontWeight.SemiBold,
                         color = LabelTertiary,
                         fontSize = 16.sp
@@ -123,9 +124,9 @@ fun PreviewScreen(
                         modifier = Modifier.padding(top = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("¿Ya tienes una cuenta? ", color = LabelSecondary)
+                        Text(stringResource(id = R.string.onboarding_already_have_account), color = LabelSecondary)
                         TextButton(onClick = onNavigateToLogin) {
-                           Text("Iniciar Sesión", color = PrimaryNormal, fontWeight = FontWeight.Bold)
+                           Text(stringResource(id = R.string.onboarding_login_link), color = PrimaryNormal, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -167,7 +168,7 @@ private fun OnboardingPageContent(page: OnboardingPage) {
             verticalArrangement = Arrangement.Bottom
         ) {
             Text(
-                text = page.title,
+                text = stringResource(id = page.titleRes),
                 color = Color.White,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
@@ -176,20 +177,12 @@ private fun OnboardingPageContent(page: OnboardingPage) {
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = page.description,
+                text = stringResource(id = page.descriptionRes),
                 color = Color.White.copy(alpha = 0.8f),
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center,
                 lineHeight = 24.sp
             )
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun OnboardingScreenPreview() {
-    CoffeUTheme(darkTheme = true) {
-        PreviewScreen(onNavigateToLogin = {})
     }
 }

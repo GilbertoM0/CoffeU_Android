@@ -1,3 +1,169 @@
 <resources>
     <string name="app_name">CoffeU</string>
+
+    <!-- Labels -->
+    <string name="lang_spanish">Español</string>
+    <string name="lang_english">Inglés</string>
+
+    <!-- Comunes -->
+    <string name="common_back">Atrás</string>
+    <string name="common_continue">Continuar</string>
+    <string name="common_save">Guardar</string>
+    <string name="common_search">Buscar</string>
+    <string name="common_add_to_cart">Agregar al carrito</string>
+    <string name="common_added_to_cart">%1$s ha sido añadido al carrito</string>
+
+    <!-- Login -->
+    <string name="login_welcome_back">Bienvenido de vuelta</string>
+    <string name="login_subtitle">Inicia sesión para continuar con CasaGamu</string>
+    <string name="login_forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="login_error_empty_fields">Por favor, introduce tu telefono y contraseña.</string>
+    <string name="login_button">INICIAR SESIÓN</string>
+    <string name="login_no_account">¿No tienes una cuenta?</string>
+    <string name="login_register_link">Regístrate</string>
+
+    <!-- Registro -->
+    <string name="register_title">Crea tu cuenta</string>
+    <string name="register_subtitle">Únete a CasaGamu y disfruta de nuestros beneficios</string>
+    <string name="register_terms_prefix">Al registrarte, aceptas nuestros </string>
+    <string name="register_terms_link">Términos de Uso</string>
+    <string name="register_button">REGISTRARSE</string>
+    <string name="register_already_have_account">¿Ya tienes una cuenta?</string>
+    <string name="register_login_link">Iniciar sesión</string>
+
+    <!-- Labels de Campos -->
+    <string name="label_phone_number">Teléfono Celular</string>
+    <string name="label_password">Contraseña</string>
+    <string name="label_confirm_password">Confirmar Contraseña</string>
+    <string name="label_email">Correo Electrónico</string>
+    <string name="label_username">Nombre de Usuario</string>
+    <string name="label_full_name">Nombre Completo</string>
+    <string name="label_product_name">Nombre del Producto</string>
+    <string name="label_description">Descripción</string>
+    <string name="label_stock">Inventario</string>
+    <string name="label_image_url">URL de la Imagen</string>
+    <string name="label_price">Precio</string>
+    <string name="label_rating">Calificación</string>
+    <string name="label_review_count">Cantidad de Reseñas</string>
+    <string name="label_category">Categoría</string>
+    <string name="label_size">Tamaño</string>
+    <string name="label_delivery_time">Tiempo de Entrega</string>
+    <string name="label_distance">Distancia</string>
+    <string name="label_discount">Descuento</string>
+    <string name="label_date_of_birth">Fecha de nacimiento</string>
+    <string name="label_day">Día</string>
+    <string name="label_month">Mes</string>
+    <string name="label_year">Año</string>
+    <string name="label_identifier">Correo o teléfono</string>
+    <string name="label_otp">OTP</string>
+    <string name="label_new_password">Nueva contraseña</string>
+    <string name="label_actual_password">Contraseña Actual</string>
+
+    <!-- Home -->
+    <string name="home_greeting">Hola, %1$s</string>
+    <string name="home_kitchens_near_you">Cocina cerca de ti</string>
+    <string name="home_more_to_discover">Más para descubrir</string>
+    <string name="home_search_placeholder">Buscar comida..</string>
+    <string name="home_see_all">Mostrar todo</string>
+    <string name="home_load_error">Error de carga: %1$s</string>
+    <string name="home_added_to_favorites">%1$s ha sido añadido a favoritos</string>
+    <string name="promo_discount_title">HASTA 30% DE DESCUENTO</string>
+    <string name="promo_discount_subtitle">EN EL PRIMER PEDIDO</string>
+    <string name="promo_order_now">Ordenar Ahora</string>
+
+    <!-- Perfil -->
+    <string name="profile_title">Perfil</string>
+    <string name="profile_section_general">General</string>
+    <string name="profile_menu_edit_profile">Editar Perfil</string>
+    <string name="profile_menu_change_password">Cambiar Contraseña</string>
+    <string name="profile_menu_notifications">Notificaciones</string>
+    <string name="profile_menu_security">Seguridad</string>
+    <string name="profile_menu_language">Idioma</string>
+    <string name="profile_menu_logout">Cerrar Sesión</string>
+    <string name="edit_profile_title">Datos Personales</string>
+    <string name="edit_profile_edit_image_desc">Editar Imagen</string>
+    <string name="edit_profile_save_button">Guardar Cambios</string>
+    <string name="edit_profile_success_msg">Perfil actualizado correctamente</string>
+
+    <!-- Notificaciones -->
+    <string name="notifications_title">Notificaciones</string>
+    <string name="notifications_empty">No tienes notificaciones todavía.</string>
+    <string name="notifications_opt_sound">Sonido</string>
+    <string name="notifications_opt_vibrate">Vibrar</string>
+    <string name="notifications_opt_special_offers">Ofertas Especiales</string>
+    <string name="notifications_opt_payments">Pagos</string>
+    <string name="notifications_opt_cashback">Reembolsos</string>
+    <string name="notifications_opt_app_updates">Actualizaciones de la App</string>
+    <string name="notifications_save_button">Guardar</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_my_order">Mi Pedido</string>
+    <string name="nav_favorites">Favoritos</string>
+    <string name="nav_profile">Perfil</string>
+
+    <!-- Months -->
+    <string name="month_jan">Enero</string>
+    <string name="month_feb">Febrero</string>
+    <string name="month_mar">Marzo</string>
+    <string name="month_apr">Abril</string>
+    <string name="month_may">Mayo</string>
+    <string name="month_jun">Junio</string>
+    <string name="month_jul">Julio</string>
+    <string name="month_aug">Agosto</string>
+    <string name="month_sep">Septiembre</string>
+    <string name="month_oct">Octubre</string>
+    <string name="month_nov">Noviembre</string>
+    <string name="month_dec">Diciembre</string>
+
+    <!-- My Order Screen -->
+    <string name="my_order_title">Mi Pedido</string>
+    <string name="my_order_empty_cart">Tu carrito está vacío.</string>
+    <string name="my_order_total_label">Total:</string>
+    <string name="my_order_checkout_button">Pagar</string>
+
+    <!-- Add Product Screen -->
+    <string name="add_product_title">Añadir Nuevo Producto</string>
+    <string name="add_product_button">Añadir Producto</string>
+
+    <!-- Change Password Screen -->
+    <string name="change_password_title">Nueva Contraseña</string>
+    <string name="change_password_subtitle">Para crear una nueva contraseña debes introducir tu contraseña actual</string>
+    <string name="change_password_button">Crear Nueva Contraseña</string>
+
+    <!-- Product Detail -->
+    <string name="product_detail_title">Detalle del Menú</string>
+    <string name="product_free_shipping">Envio Gratis</string>
+    <string name="product_removed_from_favorites">%1$s ha sido eliminado de favoritos</string>
+
+    <!-- Search / Favorites -->
+    <string name="search_title">Buscar</string>
+    <string name="search_placeholder">Buscar Comida..</string>
+    <string name="favorites_title">Favoritos</string>
+    <string name="favorites_empty">No tienes productos favoritos todavía.</string>
+    <string name="product_rating_reviews">%1$s (%2$d Reseñas)</string>
+
+    <!-- Password Recovery & Verification -->
+    <string name="recovery_title">Recuperar Contraseña</string>
+    <string name="recovery_subtitle">Selecciona un método de verificación para enviarte el código</string>
+    <string name="verify_title">Verificar Código</string>
+    <string name="verify_subtitle">Por favor, introduce el código que acabamos de enviar a tu número %1$s</string>
+    <string name="verify_resend_label">Reenviar código en 00:%1$02d</string>
+    <string name="reset_password_title">Restablecer contraseña</string>
+    <string name="reset_password_subtitle">Ingresa correo/teléfono, solicita OTP y luego crea tu nueva contraseña.</string>
+    <string name="button_send_otp">Enviar OTP</string>
+    <string name="button_save_new_password">Guardar nueva contraseña</string>
+    <string name="msg_otp_sent_success">OTP enviado correctamente. Revisa tu correo o teléfono.</string>
+
+    <!-- Onboarding / Preview Screen -->
+    <string name="onboarding_title_1">Descubre Delicias a Cualquier Hora, en Cualquier Lugar</string>
+    <string name="onboarding_desc_1">Explora un sinfín de opciones, ordena en segundos y disfruta de una entrega rápida en tu puerta.</string>
+    <string name="onboarding_title_2">Ordena con Facilidad, Cuando Quieras</string>
+    <string name="onboarding_desc_2">Descubre nuevos sabores, personaliza tus comidas y sigue tu pedido en tiempo real con facilidad.</string>
+    <string name="onboarding_title_3">Sigue y Disfruta Cada Bocado del Viaje</string>
+    <string name="onboarding_desc_3">Desde el desayuno hasta la cena, encuentra tus platos favoritos y recíbelos rápido y frescos.</string>
+    <string name="onboarding_start_button">Comenzar</string>
+    <string name="onboarding_next_button">Siguiente</string>
+    <string name="onboarding_already_have_account">¿Ya tienes una cuenta? </string>
+    <string name="onboarding_login_link">Iniciar Sesión</string>
 </resources>
