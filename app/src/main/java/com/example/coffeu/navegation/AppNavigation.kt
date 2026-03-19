@@ -215,6 +215,7 @@ fun AppNavigation(
                 ProfileScreen(
                     userName = user.nombreUsuario,
                     userEmail = user.email,
+                    onBackClicked = { navController.popBackStack() },
                     onNavigateToEditProfile = { navController.navigate(Screen.EditProfile) },
                     onNavigateToNotifications = { navController.navigate(Screen.Notifications) },
                     onNavigateToChangePassword = { navController.navigate(Screen.ChangePassword) },

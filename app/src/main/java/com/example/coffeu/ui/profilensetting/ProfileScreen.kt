@@ -2,7 +2,6 @@ package com.example.coffeu.ui.profilensetting
 
 import android.content.Context
 import android.net.Uri
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
@@ -23,7 +23,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -31,10 +30,12 @@ import coil.compose.AsyncImage
 import com.example.coffeu.R
 import com.example.coffeu.ui.theme.CoffeUTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     userName: String,
     userEmail: String,
+    onBackClicked: () -> Unit,
     onNavigateToEditProfile: () -> Unit = {},
     onNavigateToNotifications: () -> Unit = {},
     onNavigateToChangePassword: () -> Unit = {},
@@ -46,61 +47,79 @@ fun ProfileScreen(
     }
     val imageUri = sharedPreferences.getString("image_uri", null)?.let { Uri.parse(it) }
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Profile Header
-        item {
-            Spacer(modifier = Modifier.height(32.dp))
-            AsyncImage(
-                model = imageUri ?: R.drawable.fanny,
-                contentDescription = "Profile Picture",
-                modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = userName,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Text(
-                text = userEmail,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(32.dp))
-        }
-
-        // General Section
-        item {
-            Text(
-                text = "General",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp),
-                color = MaterialTheme.colorScheme.onBackground
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Profile", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClicked) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground
+                )
             )
         }
-        item { ProfileMenuItem(icon = Icons.Default.Person, text = "Edit Profile", onClick = onNavigateToEditProfile) }
-        item { ProfileMenuItem(icon = Icons.Default.Lock, text = "Change Password", onClick = onNavigateToChangePassword) }
-        item { ProfileMenuItem(icon = Icons.Default.Notifications, text = "Notifications", onClick = onNavigateToNotifications) }
-        item { ProfileMenuItem(icon = Icons.Default.Settings, text = "Security") {} }
-        item { ProfileMenuItem(icon = Icons.Default.Info, text = "Language") {} }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(MaterialTheme.colorScheme.background)
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Profile Header
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                AsyncImage(
+                    model = imageUri ?: R.drawable.fanny,
+                    contentDescription = "Profile Picture",
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = userName,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = userEmail,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+            }
 
-        // Logout Section
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-            ProfileMenuItem(icon = Icons.AutoMirrored.Filled.Logout, text = "Cerrar Sesión", onClick = onLogout)
+            // General Section
+            item {
+                Text(
+                    text = "General",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
+            item { ProfileMenuItem(icon = Icons.Default.Person, text = "Edit Profile", onClick = onNavigateToEditProfile) }
+            item { ProfileMenuItem(icon = Icons.Default.Lock, text = "Change Password", onClick = onNavigateToChangePassword) }
+            item { ProfileMenuItem(icon = Icons.Default.Notifications, text = "Notifications", onClick = onNavigateToNotifications) }
+            item { ProfileMenuItem(icon = Icons.Default.Settings, text = "Security") {} }
+            item { ProfileMenuItem(icon = Icons.Default.Info, text = "Language") {} }
+
+            // Logout Section
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                ProfileMenuItem(icon = Icons.AutoMirrored.Filled.Logout, text = "Cerrar Sesión", onClick = onLogout)
+            }
         }
     }
 }
@@ -151,6 +170,7 @@ fun ProfileScreenPreview() {
         ProfileScreen(
             userName = "Lucas Nathan",
             userEmail = "wilson@09gail.com",
+            onBackClicked = {},
             onNavigateToEditProfile = {},
             onNavigateToNotifications = {},
             onNavigateToChangePassword = {},
@@ -166,6 +186,7 @@ fun ProfileScreenDarkPreview() {
         ProfileScreen(
             userName = "Lucas Nathan",
             userEmail = "wilson@09gail.com",
+            onBackClicked = {},
             onNavigateToEditProfile = {},
             onNavigateToNotifications = {},
             onNavigateToChangePassword = {},

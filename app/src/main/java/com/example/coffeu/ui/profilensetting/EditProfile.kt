@@ -7,11 +7,12 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,9 +29,8 @@ import coil.compose.AsyncImage
 import com.example.coffeu.R
 import com.example.coffeu.ui.theme.CoffeUTheme
 import com.example.coffeu.ui.viewmodel.AuthViewModel
-import kotlinx.coroutines.launch
+import java.util.Calendar
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileScreen(
     fullName: String,
@@ -40,15 +40,63 @@ fun EditProfileScreen(
     onBackClicked: () -> Unit,
     authViewModel: AuthViewModel = viewModel()
 ) {
+    EditProfileContent(
+        fullName = fullName,
+        email = email,
+        phoneNumber = phoneNumber,
+        dateOfBirth = dateOfBirth,
+        onBackClicked = onBackClicked,
+        isLoading = authViewModel.isLoading,
+        updateSuccess = authViewModel.updateProfileSuccess,
+        errorMessage = authViewModel.errorMessage,
+        onUpdateProfile = { name, mail, phone, dob ->
+            authViewModel.attemptUpdateProfile(
+                nombre_usuario = name,
+                email = mail,
+                telefono_celular = phone,
+                fecha_nacimiento = dob
+            )
+        },
+        onResetUpdateState = { authViewModel.resetUpdateProfileState() },
+        onUpdateErrorMessage = { authViewModel.updateErrorMessage(it) }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditProfileContent(
+    fullName: String,
+    email: String,
+    phoneNumber: String,
+    dateOfBirth: String,
+    onBackClicked: () -> Unit,
+    isLoading: Boolean,
+    updateSuccess: Boolean,
+    errorMessage: String?,
+    onUpdateProfile: (String, String, String, String) -> Unit,
+    onResetUpdateState: () -> Unit,
+    onUpdateErrorMessage: (String?) -> Unit
+) {
     val context = LocalContext.current
     val sharedPreferences = remember {
         context.getSharedPreferences("user_profile_prefs", Context.MODE_PRIVATE)
     }
 
+    // Parsing initial date (YYYY-MM-DD)
+    val initialParts = dateOfBirth.split("-")
+    val initialYear = initialParts.getOrNull(0) ?: ""
+    val initialMonth = initialParts.getOrNull(1) ?: ""
+    val initialDay = initialParts.getOrNull(2) ?: ""
+
     var currentFullName by remember { mutableStateOf(fullName) }
     var currentEmail by remember { mutableStateOf(email) }
     var currentPhoneNumber by remember { mutableStateOf(phoneNumber) }
-    var currentDateOfBirth by remember { mutableStateOf(dateOfBirth) }
+    
+    // States for the 3-dropdown date picker
+    var selectedDay by remember { mutableStateOf(initialDay) }
+    var selectedMonth by remember { mutableStateOf(initialMonth) }
+    var selectedYear by remember { mutableStateOf(initialYear) }
+
     var imageUri by remember { mutableStateOf(sharedPreferences.getString("image_uri", null)?.let { Uri.parse(it) }) }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -57,25 +105,44 @@ fun EditProfileScreen(
     )
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
 
-    val isLoading = authViewModel.isLoading
-    val updateSuccess = authViewModel.updateProfileSuccess
-    val errorMessage = authViewModel.errorMessage
+    // Helper data for dropdowns
+    val months = listOf(
+        "01" to "Enero", "02" to "Febrero", "03" to "Marzo", "04" to "Abril",
+        "05" to "Mayo", "06" to "Junio", "07" to "Julio", "08" to "Agosto",
+        "09" to "Septiembre", "10" to "Octubre", "11" to "Noviembre", "12" to "Diciembre"
+    )
+    val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+    val years = (currentYear downTo 1900).map { it.toString() }
 
-    // Efecto para manejar el éxito de la actualización
-    LaunchedEffect(updateSuccess) {
-        if (updateSuccess) {
-            snackbarHostState.showSnackbar("Perfil actualizado correctamente en el servidor")
-            authViewModel.resetUpdateProfileState()
+    // Logic for days validation
+    val daysInMonth = remember(selectedMonth, selectedYear) {
+        val monthInt = selectedMonth.toIntOrNull() ?: 1
+        val yearInt = selectedYear.toIntOrNull() ?: 2000
+        val calendar = Calendar.getInstance()
+        calendar.set(yearInt, monthInt - 1, 1)
+        calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+    }
+
+    // Adjust selected day if it exceeds the max days of the newly selected month/year
+    LaunchedEffect(daysInMonth) {
+        val dayInt = selectedDay.toIntOrNull() ?: 1
+        if (dayInt > daysInMonth) {
+            selectedDay = daysInMonth.toString().padStart(2, '0')
         }
     }
 
-    // Efecto para manejar errores
+    LaunchedEffect(updateSuccess) {
+        if (updateSuccess) {
+            snackbarHostState.showSnackbar("Perfil actualizado correctamente")
+            onResetUpdateState()
+        }
+    }
+
     LaunchedEffect(errorMessage) {
         errorMessage?.let {
             snackbarHostState.showSnackbar(it)
-            authViewModel.updateErrorMessage(null)
+            onUpdateErrorMessage(null)
         }
     }
 
@@ -101,6 +168,7 @@ fun EditProfileScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.background)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -132,7 +200,6 @@ fun EditProfileScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Form Fields
             OutlinedTextField(
                 value = currentFullName,
                 onValueChange = { currentFullName = it },
@@ -164,35 +231,140 @@ fun EditProfileScreen(
                 enabled = !isLoading
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            OutlinedTextField(
-                value = currentDateOfBirth,
-                onValueChange = { currentDateOfBirth = it },
-                label = { Text("Date of Birth (YYYY-MM-DD)") },
+            // Date of Birth Dropdowns
+            Text(
+                text = "Fecha de nacimiento",
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                enabled = !isLoading,
-                trailingIcon = {
-                    Icon(Icons.Default.DateRange, contentDescription = "Select Date")
-                }
+                fontWeight = FontWeight.Medium
             )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Day Dropdown
+                var dayExpanded by remember { mutableStateOf(false) }
+                ExposedDropdownMenuBox(
+                    expanded = dayExpanded,
+                    onExpandedChange = { dayExpanded = it },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    OutlinedTextField(
+                        value = selectedDay,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Día") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dayExpanded) },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        modifier = Modifier.menuAnchor(),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    ExposedDropdownMenu(
+                        expanded = dayExpanded,
+                        onDismissRequest = { dayExpanded = false }
+                    ) {
+                        (1..daysInMonth).forEach { day ->
+                            val dayStr = day.toString().padStart(2, '0')
+                            DropdownMenuItem(
+                                text = { Text(dayStr) },
+                                onClick = {
+                                    selectedDay = dayStr
+                                    dayExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                // Month Dropdown
+                var monthExpanded by remember { mutableStateOf(false) }
+                ExposedDropdownMenuBox(
+                    expanded = monthExpanded,
+                    onExpandedChange = { monthExpanded = it },
+                    modifier = Modifier.weight(1.5f)
+                ) {
+                    val currentMonthName = months.find { it.first == selectedMonth }?.second ?: "Mes"
+                    OutlinedTextField(
+                        value = currentMonthName,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Mes") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = monthExpanded) },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        modifier = Modifier.menuAnchor(),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    ExposedDropdownMenu(
+                        expanded = monthExpanded,
+                        onDismissRequest = { monthExpanded = false }
+                    ) {
+                        months.forEach { month ->
+                            DropdownMenuItem(
+                                text = { Text(month.second) },
+                                onClick = {
+                                    selectedMonth = month.first
+                                    monthExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                // Year Dropdown
+                var yearExpanded by remember { mutableStateOf(false) }
+                ExposedDropdownMenuBox(
+                    expanded = yearExpanded,
+                    onExpandedChange = { yearExpanded = it },
+                    modifier = Modifier.weight(1.2f)
+                ) {
+                    OutlinedTextField(
+                        value = selectedYear,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Año") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = yearExpanded) },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        modifier = Modifier.menuAnchor(),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    ExposedDropdownMenu(
+                        expanded = yearExpanded,
+                        onDismissRequest = { yearExpanded = false }
+                    ) {
+                        years.forEach { year ->
+                            DropdownMenuItem(
+                                text = { Text(year) },
+                                onClick = {
+                                    selectedYear = year
+                                    yearExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
                 onClick = {
-                    // 1. Guardar localmente la imagen (SharedPreferences)
                     imageUri?.let {
                         sharedPreferences.edit().putString("image_uri", it.toString()).apply()
                     }
                     
-                    // 2. Llamar al servidor mediante Retrofit
-                    authViewModel.attemptUpdateProfile(
-                        nombre_usuario = currentFullName,
-                        email = currentEmail,
-                        telefono_celular = currentPhoneNumber,
-                        fecha_nacimiento = currentDateOfBirth
+                    // Construct final date string: YYYY-MM-DD
+                    val finalDate = "$selectedYear-$selectedMonth-$selectedDay"
+                    
+                    onUpdateProfile(
+                        currentFullName,
+                        currentEmail,
+                        currentPhoneNumber,
+                        finalDate
                     )
                 },
                 modifier = Modifier
@@ -220,12 +392,18 @@ fun EditProfileScreen(
 @Composable
 fun EditProfileScreenPreview() {
     CoffeUTheme {
-        EditProfileScreen(
+        EditProfileContent(
             fullName = "Lucas Nathan",
             email = "lucas@09gmail.com",
             phoneNumber = "308.555.0121",
             dateOfBirth = "2000-11-24",
-            onBackClicked = {}
+            onBackClicked = {},
+            isLoading = false,
+            updateSuccess = false,
+            errorMessage = null,
+            onUpdateProfile = { _, _, _, _ -> },
+            onResetUpdateState = {},
+            onUpdateErrorMessage = {}
         )
     }
 }
