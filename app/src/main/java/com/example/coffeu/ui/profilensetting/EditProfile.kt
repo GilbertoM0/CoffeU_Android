@@ -256,24 +256,31 @@ fun EditProfileContent(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 // Day Dropdown
                 var dayExpanded by remember { mutableStateOf(false) }
                 ExposedDropdownMenuBox(
                     expanded = dayExpanded,
                     onExpandedChange = { dayExpanded = it },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1.3f)
                 ) {
                     OutlinedTextField(
                         value = selectedDay,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text(stringResource(id = R.string.label_day)) },
+                        label = { 
+                            Text(
+                                stringResource(id = R.string.label_day),
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 1
+                            ) 
+                        },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dayExpanded) },
                         colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
                         modifier = Modifier.menuAnchor(),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        textStyle = MaterialTheme.typography.bodyMedium
                     )
                     ExposedDropdownMenu(
                         expanded = dayExpanded,
@@ -297,18 +304,25 @@ fun EditProfileContent(
                 ExposedDropdownMenuBox(
                     expanded = monthExpanded,
                     onExpandedChange = { monthExpanded = it },
-                    modifier = Modifier.weight(1.5f)
+                    modifier = Modifier.weight(1.8f)
                 ) {
                     val currentMonthName = months.find { it.first == selectedMonth }?.second ?: stringResource(id = R.string.label_month)
                     OutlinedTextField(
                         value = currentMonthName,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text(stringResource(id = R.string.label_month)) },
+                        label = { 
+                            Text(
+                                stringResource(id = R.string.label_month),
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 1
+                            ) 
+                        },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = monthExpanded) },
                         colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
                         modifier = Modifier.menuAnchor(),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        textStyle = MaterialTheme.typography.bodyMedium
                     )
                     ExposedDropdownMenu(
                         expanded = monthExpanded,
@@ -331,17 +345,24 @@ fun EditProfileContent(
                 ExposedDropdownMenuBox(
                     expanded = yearExpanded,
                     onExpandedChange = { yearExpanded = it },
-                    modifier = Modifier.weight(1.2f)
+                    modifier = Modifier.weight(1.5f)
                 ) {
                     OutlinedTextField(
                         value = selectedYear,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text(stringResource(id = R.string.label_year)) },
+                        label = { 
+                            Text(
+                                stringResource(id = R.string.label_year),
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 1
+                            ) 
+                        },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = yearExpanded) },
                         colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
                         modifier = Modifier.menuAnchor(),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        textStyle = MaterialTheme.typography.bodyMedium
                     )
                     ExposedDropdownMenu(
                         expanded = yearExpanded,
