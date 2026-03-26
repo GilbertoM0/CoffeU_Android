@@ -29,15 +29,23 @@ object AppModule {
     fun provideOkHttpClient(sharedPreferences: SharedPreferences): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor { chain ->
+                val request = chain.request()
+                
+                // No enviar token en login ni registro
+                val path = request.url.encodedPath
+                if (path.contains("accounts/login") || path.contains("accounts/registro")) {
+                    return@addInterceptor chain.proceed(request)
+                }
+
                 val token = sharedPreferences.getString("auth_token", null)
-                val request = if (token != null) {
-                    chain.request().newBuilder()
+                val newRequest = if (token != null) {
+                    request.newBuilder()
                         .addHeader("Authorization", "Bearer $token")
                         .build()
                 } else {
-                    chain.request()
+                    request
                 }
-                chain.proceed(request)
+                chain.proceed(newRequest)
             }
             .build()
     }

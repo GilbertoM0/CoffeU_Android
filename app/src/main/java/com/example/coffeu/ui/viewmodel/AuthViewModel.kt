@@ -177,17 +177,17 @@ class AuthViewModel @Inject constructor(
                 authService.register(request)
                 registerSuccess = true
             } catch (e: HttpException) {
-                isLoading = false
-                registerSuccess = true
+                errorMessage = when (e.code()) {
+                    401 -> "No autorizado (401). Verifica la configuración del servidor."
+                    400 -> "Datos inválidos. El usuario o email ya podrían existir."
+                    else -> "Error del servidor: ${e.message()}"
+                }
             } catch (e: IOException) {
-                isLoading = false
-                registerSuccess = true
+                errorMessage = "Error de red: verifica tu conexión a internet."
             } catch (e: Exception) {
-                isLoading = false
-                registerSuccess = true
+                errorMessage = "Error inesperado: ${e.localizedMessage}"
             } finally {
                 isLoading = false
-                registerSuccess = true
             }
         }
     }
