@@ -32,7 +32,7 @@ import com.example.coffeu.ui.viewmodel.AuthViewModel
 
 @Composable
 fun RegisterScreen(
-    onRegistrationSuccess: () -> Unit,
+    onRegistrationSuccess: (String) -> Unit,
     onNavigateToLogin: () -> Unit = {},
     authViewModel: AuthViewModel = viewModel() // Obtener el ViewModel
 ) {
@@ -47,14 +47,12 @@ fun RegisterScreen(
 
     // --- ESTADOS DEL VIEWMODEL (OBSERVABLES) ---
     val isLoading = authViewModel.isLoading
-    val errorMessage = authViewModel.errorMessage
-    val registerSuccess = authViewModel.registerSuccess
+    val registroState by authViewModel.registroState.collectAsState()
 
-    // 1. Efecto: Reaccionar al registro exitoso (navegación)
-    LaunchedEffect(registerSuccess) {
-        if (registerSuccess) {
-            authViewModel.resetRegisterState() // Limpiar el estado
-            onRegistrationSuccess() // Navegar a Login (callback de AppNavigation)
+    LaunchedEffect(registroState) {
+        if (registroState is com.example.coffeu.ui.viewmodel.AuthUiState.Success) {
+            authViewModel.resetRegistroUiState()
+            onRegistrationSuccess(telefonoCelular.normalizarTelefonoParaBackend())
         }
     }
 
@@ -194,11 +192,11 @@ fun RegisterScreen(
                 // --- Botón de Registrarse CONECTADO A LA LÓGICA ---
                 Button(
                     onClick = {
-                        // Llama a la función del ViewModel con los datos
-                        authViewModel.attemptRegister(
+                        val telefonoNormalizado = telefonoCelular.normalizarTelefonoParaBackend()
+                        authViewModel.registrar(
+                            nombreUsuario = nombreUsuario,
+                            telefonoCelular = telefonoNormalizado,
                             email = email,
-                            nombre_usuario = nombreUsuario,
-                            telefono_celular = telefonoCelular,
                             password = password,
                             password2 = password2
                         )
@@ -223,10 +221,10 @@ fun RegisterScreen(
                     }
                 }
 
-                // --- Mostrar Error ---
+                val errorMessage = (registroState as? com.example.coffeu.ui.viewmodel.AuthUiState.Error)?.message
                 if (errorMessage != null && !isLoading) {
                     Text(
-                        text = errorMessage!!,
+                        text = errorMessage,
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(top = 16.dp)
                     )

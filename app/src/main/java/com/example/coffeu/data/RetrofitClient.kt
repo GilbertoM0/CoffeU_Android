@@ -1,12 +1,12 @@
 package com.example.coffeu.data
 
+import com.example.coffeu.BuildConfig
 import com.example.coffeu.data.api.AuthService
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-// ¡IMPORTANTE! 10.0.2.2 es para acceder a tu localhost desde el emulador.
-const val BASE_URL = "http://10.0.2.2:3000/"
+const val BASE_URL = BuildConfig.API_BASE_URL
 
 object RetrofitClient {
     private var authToken: String? = null

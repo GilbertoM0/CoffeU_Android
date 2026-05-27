@@ -1,6 +1,7 @@
 package com.example.coffeu.ui.viewmodel
 
 import android.content.SharedPreferences
+import com.example.coffeu.BuildConfig
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -10,27 +11,80 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.coffeu.data.api.AuthService
 import com.example.coffeu.data.model.AddProductRequest
+import com.example.coffeu.data.model.AuthResponse
 import com.example.coffeu.data.model.CartItem
+import com.example.coffeu.data.model.FirebaseVerifyRequest
 import com.example.coffeu.data.model.Kitchen
 import com.example.coffeu.data.model.LoginRequest
-import com.example.coffeu.data.model.LoginResponse
 import com.example.coffeu.data.model.RegisterRequest
+import com.example.coffeu.data.model.RegistroRequest
 import com.example.coffeu.data.model.VerifyCodeRequest
 import com.example.coffeu.data.model.NotificationItem
 import com.example.coffeu.data.model.UserUpdateRequest
 import com.example.coffeu.data.model.UserUpdateResponse
+import com.example.coffeu.data.model.UserDto
+import com.example.coffeu.ui.auth.normalizarTelefonoParaBackend
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
 
+sealed interface AuthUiState {
+    data object Idle : AuthUiState
+    data object Loading : AuthUiState
+    data class Success(val message: String? = null) : AuthUiState
+    data class Error(val message: String) : AuthUiState
+}
+
+class AuthRepository @Inject constructor(
+    private val authService: AuthService
+) {
+    suspend fun registro(
+        nombreUsuario: String,
+        telefonoCelular: String,
+        email: String,
+        password: String,
+        password2: String
+    ): Result<Unit> {
+        return runCatching {
+            authService.registro(
+                RegistroRequest(
+                    nombreUsuario = nombreUsuario,
+                    telefonoCelular = telefonoCelular,
+                    email = email,
+                    password = password,
+                    password2 = password2
+                )
+            )
+            Unit
+        }
+    }
+
+    suspend fun firebaseVerify(idToken: String): Result<AuthResponse> {
+        return runCatching {
+            authService.firebaseVerify(FirebaseVerifyRequest(idToken = idToken))
+        }
+    }
+
+    suspend fun login(identificador: String, password: String): Result<AuthResponse> {
+        return runCatching {
+            authService.login(LoginRequest(identificador, password))
+        }
+    }
+}
+
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authService: AuthService,
+    private val authRepository: AuthRepository,
     private val sharedPreferences: SharedPreferences
 ) : ViewModel() {
-    var loginState by mutableStateOf<LoginResponse?>(null)
+    var loginState by mutableStateOf<AuthResponse?>(null)
         private set
     var registerSuccess by mutableStateOf(false)
         private set
@@ -44,6 +98,12 @@ class AuthViewModel @Inject constructor(
         private set
     var errorMessage by mutableStateOf<String?>(null)
         private set
+
+    private val _registroState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
+    val registroState: StateFlow<AuthUiState> = _registroState.asStateFlow()
+
+    private val _firebaseVerifyState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
+    val firebaseVerifyState: StateFlow<AuthUiState> = _firebaseVerifyState.asStateFlow()
 
     // Para Kitchen la carga de los products
     var kitchenList by mutableStateOf<List<Kitchen>>(emptyList())
@@ -141,7 +201,10 @@ class AuthViewModel @Inject constructor(
                 val request = LoginRequest(email, password)
                 val response = authService.login(request)
                 loginState = response
-                sharedPreferences.edit().putString("auth_token", response.token).apply()
+                sharedPreferences.edit()
+                    .putString("auth_token", response.accessToken)
+                    .putString("refresh_token", response.refreshToken)
+                    .apply()
             } catch (e: HttpException) {
                 errorMessage = "Credenciales inválidas. Verifica tu email y contraseña."
             } catch (e: IOException) {
@@ -152,6 +215,114 @@ class AuthViewModel @Inject constructor(
                 isLoading = false
             }
         }
+    }
+
+    fun registrar(
+        nombreUsuario: String,
+        telefonoCelular: String,
+        email: String,
+        password: String,
+        password2: String
+    ) {
+        val telefonoNormalizado = telefonoCelular.normalizarTelefonoParaBackend()
+        val localPhoneRegex = Regex("^\\d{10}$")
+        val e164MxRegex = Regex("^\\+52\\d{10}$")
+        val strongPasswordRegex = Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d]).{8,}$")
+
+        when {
+            nombreUsuario.isBlank() || telefonoNormalizado.isBlank() || email.isBlank() || password.isBlank() || password2.isBlank() -> {
+                _registroState.value = AuthUiState.Error("Completa todos los campos.")
+                return
+            }
+            !localPhoneRegex.matches(telefonoNormalizado) && !e164MxRegex.matches(telefonoNormalizado) -> {
+                _registroState.value = AuthUiState.Error("Ingresa un teléfono válido (10 dígitos o +52 seguido de 10 dígitos).")
+                return
+            }
+            password != password2 -> {
+                _registroState.value = AuthUiState.Error("Las contraseñas no coinciden.")
+                return
+            }
+            !strongPasswordRegex.matches(password) -> {
+                _registroState.value = AuthUiState.Error("La contraseña debe tener 8+ caracteres, mayúscula, minúscula, número y símbolo.")
+                return
+            }
+        }
+
+        viewModelScope.launch {
+            _registroState.value = AuthUiState.Loading
+            isLoading = true
+            val result = authRepository.registro(
+                nombreUsuario = nombreUsuario,
+                telefonoCelular = telefonoNormalizado,
+                email = email,
+                password = password,
+                password2 = password2
+            )
+            _registroState.value = result.fold(
+                onSuccess = { AuthUiState.Success("Registro exitoso. Te enviamos un OTP.") },
+                onFailure = {
+                    AuthUiState.Error(it.localizedMessage ?: "No se pudo completar el registro.")
+                }
+            )
+            isLoading = false
+        }
+    }
+
+    fun verificarFirebase(idToken: String) {
+        if (idToken.isBlank()) {
+            val message = "No se pudo validar el token de Firebase."
+            errorMessage = message
+            _firebaseVerifyState.value = AuthUiState.Error(message)
+            return
+        }
+
+        viewModelScope.launch {
+            _firebaseVerifyState.value = AuthUiState.Loading
+            isLoading = true
+            errorMessage = null
+            val result = authRepository.firebaseVerify(idToken)
+            _firebaseVerifyState.value = result.fold(
+                onSuccess = { auth ->
+                    loginState = auth
+                    sharedPreferences.edit()
+                        .putString("auth_token", auth.accessToken)
+                        .putString("refresh_token", auth.refreshToken)
+                        .apply()
+                    errorMessage = null
+                    AuthUiState.Success("Cuenta verificada correctamente.")
+                },
+                onFailure = { throwable ->
+                    val message = when (throwable) {
+                        is HttpException -> when (throwable.code()) {
+                            401 -> "El backend rechazó el ID token de Firebase (401). Verifica Firebase Admin en Django, el proyecto Firebase correcto y reinstala la app con el google-services.json actualizado."
+                            403 -> "El backend no autorizó la verificación Firebase (403). Revisa permisos o configuración del endpoint."
+                            404 -> "El endpoint /accounts/firebase-verify/ no fue encontrado en ${BuildConfig.API_BASE_URL}."
+                            400 -> {
+                                val backendMessage = parseBackendErrorBody(throwable)
+                                "Solicitud inválida (400): $backendMessage"
+                            }
+                            else -> {
+                                val backendMessage = parseBackendErrorBody(throwable)
+                                "Error del backend (${throwable.code()}) al verificar Firebase: $backendMessage"
+                            }
+                        }
+                        is IOException -> "No se pudo conectar con el backend en ${BuildConfig.API_BASE_URL}. Revisa la IP local, el puerto 3000 y que el teléfono esté en la misma red Wi‑Fi."
+                        else -> throwable.localizedMessage ?: "No se pudo verificar la sesión en backend."
+                    }
+                    errorMessage = message
+                    AuthUiState.Error(message)
+                }
+            )
+            isLoading = false
+        }
+    }
+
+    fun resetRegistroUiState() {
+        _registroState.value = AuthUiState.Idle
+    }
+
+    fun resetFirebaseVerifyUiState() {
+        _firebaseVerifyState.value = AuthUiState.Idle
     }
 
     fun attemptRegister(
@@ -241,7 +412,13 @@ class AuthViewModel @Inject constructor(
                 if (response.user != null) {
                     val currentLoginState = loginState
                     if (currentLoginState != null) {
-                        loginState = currentLoginState.copy(user = response.user)
+                        val updatedUser = UserDto(
+                            id = response.user.id,
+                            nombreUsuario = response.user.nombreUsuario,
+                            email = response.user.email,
+                            telefonoCelular = response.user.telefonoCelular
+                        )
+                        loginState = currentLoginState.copy(user = updatedUser)
                     }
                 }
 
@@ -354,6 +531,24 @@ class AuthViewModel @Inject constructor(
 
     fun logout() {
         loginState = null
-        sharedPreferences.edit().remove("auth_token").apply()
+        sharedPreferences.edit()
+            .remove("auth_token")
+            .remove("refresh_token")
+            .apply()
+    }
+
+    private fun parseBackendErrorBody(httpException: HttpException): String {
+        val raw = httpException.response()?.errorBody()?.string()?.trim().orEmpty()
+        if (raw.isBlank()) return "sin detalle"
+
+        return runCatching {
+            val json = JSONObject(raw)
+            when {
+                json.has("mensaje") -> json.getString("mensaje")
+                json.has("detail") -> json.getString("detail")
+                json.has("id_token") -> "id_token: ${json.get("id_token")}" 
+                else -> raw
+            }
+        }.getOrElse { raw }
     }
 }

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "898862029515",
+    "project_id": "coffeuautenticador",
+    "storage_bucket": "coffeuautenticador.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:898862029515:android:69955660154b47d792994e",
+        "android_client_info": {
+          "package_name": "com.example.coffeu"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "898862029515-7n8mqm0e6ss2nvmds2d5o2fr7m2cror4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.coffeu",
+            "certificate_hash": "c50457de318b5f17eda4977c3e5d61a6684b9fd7"
+          }
+        },
+        {
+          "client_id": "898862029515-qlpfp4ec4o23smi62t89td0mngegsj68.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVbFpfl4ZHE-xfgXALcD75F5x2O-HUI6w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "898862029515-qlpfp4ec4o23smi62t89td0mngegsj68.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
